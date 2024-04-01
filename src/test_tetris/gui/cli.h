@@ -3,6 +3,8 @@
 
 #include <ncurses.h>
 
+#include "../brick_game/tetris.h"
+
 #define WIN_INIT(time)       \
   {                          \
     initscr();               \
@@ -16,12 +18,23 @@
   }
 
 #define BOARDS_BEGIN 2
-#define BOARD_N 20
-#define BOARD_M 10
+#define BOARD_HEIGHT 20
+#define BOARD_WIDTH 10
 #define HUD_WIDTH 8
 
-#define WPRINTW(y, x, window, ...) \
+#define WPRINTW(window, y, x, ...) \
   mvwprintw((window), BOARDS_BEGIN + (y), BOARDS_BEGIN + (x), __VA_ARGS__)
+
+typedef enum {
+  Start,
+  Pause,
+  Terminate,
+  Left,
+  Right,
+  Up,
+  Down,
+  Action
+} UserAction_t;
 
 typedef struct {
   int **field;
@@ -33,6 +46,12 @@ typedef struct {
   int pause;
 } GameInfo_t;
 
-void print_board();
+void userInput(UserAction_t action, bool hold);
+GameInfo_t updateCurrentState();
+
+void printBoard(WINDOW *board, WINDOW *sidebar);
+
+// void displayBoard(WINDOW *board, game *tetris);
+// void print_stats(WINDOW *sidebar);
 
 #endif
