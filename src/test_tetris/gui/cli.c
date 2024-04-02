@@ -1,10 +1,6 @@
 #include "cli.h"
 
 void printBoard(WINDOW *board, WINDOW *sidebar) {
-  board = newwin(BOARD_HEIGHT + 1, BOARD_WIDTH + 1, BOARDS_BEGIN, BOARDS_BEGIN);
-  sidebar = newwin(BOARD_HEIGHT + 1, HUD_WIDTH + 1, BOARDS_BEGIN,
-                   BOARDS_BEGIN + 1 + BOARD_WIDTH);
-
   box(board, 0, 0);
   box(sidebar, 0, 0);
   refresh();
@@ -17,8 +13,8 @@ void printBoard(WINDOW *board, WINDOW *sidebar) {
   // print_stats(sidebar);
   // wnoutrefresh(board);
   // wnoutrefresh(sidebar);
-  // wrefresh(board);
-  // wrefresh(sidebar);
+  wrefresh(board);
+  wrefresh(sidebar);
 }
 
 void displayField(WINDOW *board, game *tetris) {
@@ -30,7 +26,12 @@ void displayField(WINDOW *board, game *tetris) {
         WPRINTW(board, i, j, " ");
     }
   }
-  // wrefresh(board);
+  wrefresh(board);
+}
+
+GameInfo_t updateCurrentState() {
+  GameInfo_t game;
+  game.field
 }
 
 void print_stats(WINDOW *sidebar) {}

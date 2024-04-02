@@ -51,6 +51,17 @@ typedef struct {
   tetris_block next_tetromino;
 } game;
 
+typedef enum {
+  START = 0,
+  SPAWN,
+  MOVING,
+  SHIFTING,
+  ATTACHING,
+  STOP,
+  GAMEOVER,
+  EXIT_STATE
+} tetris_state;
+
 int getCell(game *tetris, int row, int column);
 extern tetris_location TETRIS_FIGURE[7][4][4];
 extern int GRAVITY_LEVEL[19 + 1];

@@ -7,6 +7,10 @@ int getCell(game *tetris, int row, int column) {
   return tetris->board[row][column];
 }
 
+void setCell(game *tetris, int row, int column, int value) {
+  tetris->board[row][column] = value;
+}
+
 static int randomTetromino() { return rand() % NUM_TETROMINOES; };
 
 void newFallingFigure(game *tetris) {
@@ -41,7 +45,7 @@ void freeGame(game *tetris) {
   }
 }
 
-bool checkEndGame(game *) { return true; }
+bool checkEndGame(game *) { return true; }  //нужно дописать
 
 game *gameInit(int rows, int cols) {
   game *new = (game *)malloc(sizeof(game));
@@ -59,6 +63,7 @@ game *gameInit(int rows, int cols) {
 
   return new;
 };
+
 void printtetris(WINDOW *w) {
   box(w, 0, 0);
   // refresh();
@@ -68,52 +73,105 @@ void printtetris(WINDOW *w) {
 void printFigure(WINDOW *w) {
   mvwprintw(w, 5, 5, "@");
   // refresh();
-  // wrefresh(w);
+  wrefresh(w);
+}
+
+WINDOW *createNewWindow(WINDOW *w, int width, int x) {
+  w = newwin(BOARD_HEIGHT + 1, width + 1, BOARDS_BEGIN, x);
+  return w;
+}
+void userInput(UserAction_t action, bool hold) {}
+
+void finiteStateMachine(UserAction_t sig, tetris_state *state, game *tetris) {
+  switch (*state) {
+    case START:
+      switch (sig) {
+        case Start:
+          *state = SPAWN;
+          break;
+        case Terminate:
+          *state = EXIT_STATE;
+          break;
+        case Pause:
+          *state = STOP;
+        default:
+          *state = START;
+          break;
+      }
+      break;
+    case SPAWN:
+      break;
+    case MOVING:
+      switch (sig) {
+        case Left:
+          /* code */
+          break;
+        case Right:
+          /* code */
+          break;
+        case Down:
+          /* code */
+          break;
+        case Action:
+          *state = SHIFTING;
+          /* code */
+          break;
+        default:
+          break;
+      }
+    case SHIFTING:
+      /* code */
+      break;
+    case ATTACHING:
+      /* code */
+      break;
+    case GAMEOVER:
+      /* code */
+      break;
+
+    default:
+      break;
+  }
+}
+
+void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris) {
+  bool running = TRUE;
+  UserAction_t signal = 8;
+  bool hold = FALSE;
+  tetris_state state = START;
+
+  // int endgame = 1;  //временная переменная
+  while (running) {
+    // displayField(board, tetris);
+    if (state == GAMEOVER || state == EXIT_STATE) running = FALSE;
+    // userInput(&signal, hold);
+    // finiteStateMachine(&signal, &state, tetris);
+    // printFigure(board);
+
+    signal = getch();
+
+    if (signal == 27 || signal == 113) running = FALSE;  //временное
+
+    halfdelay(10);
+  }
 }
 
 int main() {
   WIN_INIT(1);
   WINDOW *board, *sidebar;
   game *tetris;
-  bool running = true;
-  int endgame = 1;
+  // bool running = true;
+
+  board = createNewWindow(board, BOARD_WIDTH, BOARDS_BEGIN);
+  sidebar = createNewWindow(sidebar, HUD_WIDTH, BOARDS_BEGIN + BOARD_WIDTH + 1);
   tetris = gameInit(BOARD_HEIGHT, BOARD_WIDTH);
-  board = newwin(BOARD_HEIGHT + 1, BOARD_WIDTH + 1, BOARDS_BEGIN, BOARDS_BEGIN);
-  sidebar = newwin(BOARD_HEIGHT + 1, HUD_WIDTH + 1, BOARDS_BEGIN,
-                   BOARDS_BEGIN + 1 + BOARD_WIDTH);
-  // printBoard(board, sidebar);
-  while (endgame) {
-    int ch = getch();
-    if (ch == 27 || ch == 113) endgame = 0;
-    // if (ch == 'p') printw("%d", CONVERT_TO_CELL(randomTetromino()));
-    // running = check_end_game(tetris);
+  printBoard(board, sidebar);
 
-    // print_figure();
-    halfdelay(10);
-  }
-
+  gameLoop(board, sidebar, tetris);
   freeGame(tetris);
 
   wclear(stdscr);
   endwin();
-
-  // board = newwin(BOARD_HEIGHT + 1, BOARD_WIDTH + 1, BOARDS_BEGIN,
-  // BOARDS_BEGIN); sidebar = newwin(BOARD_HEIGHT + 1, HUD_WIDTH + 1,
-  // BOARDS_BEGIN,
-  //                  BOARDS_BEGIN + 1 + BOARD_WIDTH);
-
-  // box(board, 0, 0);
-  // box(sidebar, 0, 0);
-
-  // // mvwprintw(board, 1, 1, "@");
-  // mvwprintw(sidebar, 1, 2, "Score");
-  // mvwprintw(sidebar, 4, 2, "Record");
-  // mvwprintw(sidebar, 7, 2, "Level");
-  // mvwprintw(sidebar, 10, 2, "Next");
-  // // print_stats(sidebar);
-  // refresh();
-  // wrefresh(board);
-  // wrefresh(sidebar);
 
   //   int height, width, start_x, start_y;
   //   height = 21;
@@ -172,3 +230,6 @@ int GRAVITY_LEVEL[19 + 1] = {
     50, 48, 46, 44, 42, 40, 38, 36, 34, 32,
     // 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
     30, 28, 26, 24, 22, 20, 16, 12, 8, 4};
+
+// if (ch == 'p') printw("%d", CONVERT_TO_CELL(randomTetromino()));
+// running = check_end_game(tetris);
