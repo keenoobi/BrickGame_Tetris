@@ -65,8 +65,8 @@ game *gameInit(int rows, int cols) {
   new->points_remaining = POINTS_PER_LEVEL;
   srand(time(NULL));
   newFallingFigure(new);
-  newFallingFigure(new);
   new->next_tetromino.coordinates.col = new->cols / 2 - 2;
+  newFallingFigure(new);
 
   return new;
 };
@@ -84,7 +84,7 @@ void printFigure(WINDOW *w) {
 }
 
 WINDOW *createNewWindow(WINDOW *w, int width, int x) {
-  w = newwin(BOARD_HEIGHT + 4, width + 2, BOARDS_BEGIN, x);
+  w = newwin(BOARD_HEIGHT + 2, width + 2, BOARDS_BEGIN, x);
   return w;
 }
 void userInput(UserAction_t action, bool hold) {}
@@ -141,9 +141,9 @@ void finiteStateMachine(UserAction_t sig, tetris_state *state, game *tetris) {
   }
 }
 
-void spawnTetromino(game *tetris, tetris_block piece) {
+void placeTetromino(game *tetris, tetris_block piece) {
   for (int i = 0; i < 4; i++) {
-    tetris_location cell = TETRIS_FIGURE[piece.type = 0][piece.orient][i];
+    tetris_location cell = TETRIS_FIGURE[piece.type][piece.orient][i];
 
     setCell(tetris, piece.coordinates.row + cell.row,
             piece.coordinates.col + cell.col, piece.type + 1);
@@ -151,7 +151,7 @@ void spawnTetromino(game *tetris, tetris_block piece) {
 }
 void removeTetromino(game *tetris, tetris_block piece) {
   for (int i = 0; i < 4; i++) {
-    tetris_location cell = TETRIS_FIGURE[piece.type = 0][piece.orient][i];
+    tetris_location cell = TETRIS_FIGURE[piece.type][piece.orient][i];
     setCell(tetris, piece.coordinates.row + cell.row,
             piece.coordinates.col + cell.col, 0);
   }
@@ -159,7 +159,7 @@ void removeTetromino(game *tetris, tetris_block piece) {
 
 void checkData(WINDOW *w, int **field) {
   int i, j;
-  for (i = 0; i < 22; i++) {
+  for (i = 0; i < 20; i++) {
     for (j = 0; j < 10; j++) {
       mvwprintw(w, i + 1, j + 1, "%d", field[i][j]);
     }
@@ -184,46 +184,10 @@ void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
 
   while (running) {
     signal = getch();
-    spawnTetromino(tetris, tetris->falling_tetromino);
-    // checkData(stdscr, tetris->board);
+    placeTetromino(tetris, tetris->falling_tetromino);
+    // checkData(board, tetris->board);
 
     displayField(board, data);
-    /*     if (tetris->falling_tetromino.coordinates.row != 18 &&
-            tetris->tick_till_drop++ == 9) {
-          removeTetromino(tetris, tetris->falling_tetromino);
-          tetris->falling_tetromino.coordinates.row++;
-        } */
-    if (tetris->tick_till_drop == 10) tetris->tick_till_drop = 0;
-
-    if (signal == KEY_RIGHT &&
-        tetris->falling_tetromino.coordinates.col != BOARD_WIDTH) {
-      removeTetromino(tetris, tetris->falling_tetromino);
-      tetris->falling_tetromino.coordinates.col++;
-      printCoord(sidebar, tetris);
-    }
-    if (signal == KEY_LEFT && tetris->falling_tetromino.coordinates.col != 0) {
-      removeTetromino(tetris, tetris->falling_tetromino);
-      tetris->falling_tetromino.coordinates.col--;
-      printCoord(sidebar, tetris);
-    }
-    if (signal == KEY_DOWN && tetris->falling_tetromino.coordinates.row != 20) {
-      removeTetromino(tetris, tetris->falling_tetromino);
-      tetris->falling_tetromino.coordinates.row++;
-      printCoord(sidebar, tetris);
-    }
-    if (signal == KEY_UP && tetris->falling_tetromino.coordinates.row != 0) {
-      removeTetromino(tetris, tetris->falling_tetromino);
-      tetris->falling_tetromino.coordinates.row--;
-      printCoord(sidebar, tetris);
-    }
-    if (signal == 'r') {
-      removeTetromino(tetris, tetris->falling_tetromino);
-      tetris->falling_tetromino.orient++;
-      printw("%d", tetris->falling_tetromino.orient);
-      if (tetris->falling_tetromino.orient == 4)
-        tetris->falling_tetromino.orient = 0;
-      printCoord(sidebar, tetris);
-    }
     if (state == GAMEOVER || state == EXIT_STATE) running = FALSE;
     if (signal == 'p') printw("%d", CONVERT_TO_CELL(randomTetromino()));
     // userInput(&signal, hold);
@@ -249,7 +213,7 @@ int main() {
 
   board = createNewWindow(board, BOARD_WIDTH, BOARDS_BEGIN);
   sidebar = createNewWindow(sidebar, HUD_WIDTH, BOARDS_BEGIN + BOARD_WIDTH + 2);
-  tetris = gameInit(BOARD_HEIGHT + 2, BOARD_WIDTH);
+  tetris = gameInit(BOARD_HEIGHT, BOARD_WIDTH);
   tetris_data = gameStateInit(BOARD_HEIGHT, BOARD_WIDTH);
   printBoard(board, sidebar);
 

@@ -24,18 +24,20 @@
 #define HUD_WIDTH 8
 #define TETROMINO_SIZE 4
 
+#define ESC_KEY 27
+
 #define WPRINTW(window, y, x, ...) \
   mvwprintw((window), 1 + (y), 1 + (x), __VA_ARGS__)
 
 typedef enum {
-  Start,
-  Pause,
-  Terminate,
-  Left,
-  Right,
-  Up,
-  Down,
-  Action
+  Start = KEY_ENTER,
+  Pause = 'p',
+  Terminate = ESC_KEY,
+  Left = KEY_LEFT,
+  Right = KEY_RIGHT,
+  Up = 9999,
+  Down = KEY_DOWN,
+  Action = 'r'
 } UserAction_t;
 
 typedef struct {
@@ -55,7 +57,6 @@ void printBoard(WINDOW *board, WINDOW *sidebar);
 GameInfo_t *gameStateInit(int rows, int cols);
 void freeGameInfo(GameInfo_t *tetris);
 void displayField(WINDOW *board, GameInfo_t *tetris);
-void freeData(GameInfo_t *tetris);
 
 // void displayBoard(WINDOW *board, game *tetris);
 // void print_stats(WINDOW *sidebar);

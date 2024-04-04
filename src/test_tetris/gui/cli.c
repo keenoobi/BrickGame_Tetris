@@ -54,12 +54,12 @@ GameInfo_t *gameStateInit(int rows, int cols) {
 }
 
 void displayField(WINDOW *board, GameInfo_t *tetris) {
-  for (int i = 0; i < BOARD_HEIGHT + 2; i++) {
+  for (int i = 0; i < BOARD_HEIGHT; i++) {
     for (int j = 0; j < BOARD_WIDTH; j++) {
       if (tetris->field[i][j]) {
         WPRINTW(board, i, j, "1");
       } else
-        WPRINTW(board, i, j, "0");
+        WPRINTW(board, i, j, " ");
     }
   }
   wrefresh(board);
