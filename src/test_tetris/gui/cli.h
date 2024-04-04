@@ -2,8 +2,9 @@
 #define CLI_H
 
 #include <ncurses.h>
+#include <stdlib.h>
 
-#include "../brick_game/tetris.h"
+// #include "../brick_game/tetris.h"
 
 #define WIN_INIT(time)       \
   {                          \
@@ -21,9 +22,10 @@
 #define BOARD_HEIGHT 20
 #define BOARD_WIDTH 10
 #define HUD_WIDTH 8
+#define TETROMINO_SIZE 4
 
 #define WPRINTW(window, y, x, ...) \
-  mvwprintw((window), BOARDS_BEGIN + (y), BOARDS_BEGIN + (x), __VA_ARGS__)
+  mvwprintw((window), 1 + (y), 1 + (x), __VA_ARGS__)
 
 typedef enum {
   Start,
@@ -47,9 +49,13 @@ typedef struct {
 } GameInfo_t;
 
 void userInput(UserAction_t action, bool hold);
-GameInfo_t updateCurrentState();
+// GameInfo_t updateCurrentState();
 
 void printBoard(WINDOW *board, WINDOW *sidebar);
+GameInfo_t *gameStateInit(int rows, int cols);
+void freeGameInfo(GameInfo_t *tetris);
+void displayField(WINDOW *board, GameInfo_t *tetris);
+void freeData(GameInfo_t *tetris);
 
 // void displayBoard(WINDOW *board, game *tetris);
 // void print_stats(WINDOW *sidebar);
