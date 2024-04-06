@@ -30,14 +30,14 @@
   mvwprintw((window), 1 + (y), 1 + (x), __VA_ARGS__)
 
 typedef enum {
-  Start = KEY_ENTER,
-  Pause = 'p',
-  Terminate = ESC_KEY,
-  Left = KEY_LEFT,
-  Right = KEY_RIGHT,
-  Up = 9999,
-  Down = KEY_DOWN,
-  Action = 'r'
+  Start,
+  Pause,
+  Terminate,
+  Left,
+  Right,
+  Up,
+  Down,
+  Action
 } UserAction_t;
 
 typedef struct {

@@ -3,6 +3,113 @@
 // #include <stdlib.h>
 #include <time.h>
 
+void exitstate(params_t *prms) { *prms->state = EXIT_STATE; }
+
+void spawn(params_t *prms) {
+  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino))
+    *prms->state = GAMEOVER;
+  else {
+    newFallingFigure(prms->stats);
+    placeTetromino(prms->stats, prms->stats->falling_tetromino);
+    *prms->state = MOVING;
+  }
+}
+
+void moveDown(params_t *prms) {
+  removeTetromino(prms->stats, prms->stats->falling_tetromino);
+  prms->stats->falling_tetromino.coordinates.row++;
+  if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
+    *prms->state = SHIFTING;
+  } else {
+    prms->stats->falling_tetromino.coordinates.row--;
+    placeTetromino(prms->stats, prms->stats->falling_tetromino);
+    *prms->state = SPAWN;
+  }
+}
+
+void moveRight(params_t *prms) {
+  removeTetromino(prms->stats, prms->stats->falling_tetromino);
+  prms->stats->falling_tetromino.coordinates.col++;
+  if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
+    placeTetromino(prms->stats, prms->stats->falling_tetromino);
+    *prms->state = SHIFTING;
+  } else {
+    prms->stats->falling_tetromino.coordinates.col--;
+    placeTetromino(prms->stats, prms->stats->falling_tetromino);
+  }
+}
+
+void moveLeft(params_t *prms) {
+  removeTetromino(prms->stats, prms->stats->falling_tetromino);
+  prms->stats->falling_tetromino.coordinates.col--;
+  if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
+    placeTetromino(prms->stats, prms->stats->falling_tetromino);
+    *prms->state = SHIFTING;
+  } else {
+    prms->stats->falling_tetromino.coordinates.col++;
+    placeTetromino(prms->stats, prms->stats->falling_tetromino);
+  }
+}
+
+void pauseGame(params_t *prms) {
+  if (*prms->state != PAUSE)
+    *prms->state = PAUSE;
+  else
+    *prms->state = SHIFTING;
+}
+
+void rotate(params_t *prms) {
+  removeTetromino(prms->stats, prms->stats->falling_tetromino);
+  prms->stats->falling_tetromino.orient++;
+  if (prms->stats->falling_tetromino.orient == 4) {
+    prms->stats->falling_tetromino.orient = 0;
+    prms->state = SHIFTING;
+  }
+}
+
+void shifting(params_t *prms) {
+  if (prms->stats->tick_till_drop-- <= 0) {
+    prms->stats->tick_till_drop = GRAVITY_LEVEL[prms->stats->level];
+    moveDown(prms);
+  }
+}
+
+action fsm_table[8][8] = {
+    {NULL, NULL, NULL, NULL, exitstate, spawn, NULL},
+    {spawn, spawn, spawn, spawn, spawn, spawn, spawn},
+    {/* moveup */ NULL, moveDown, moveRight, moveLeft, exitstate, rotate,
+     pauseGame},
+    {shifting, shifting, shifting, shifting, shifting, shifting, shifting},
+    {reach, reach, reach, reach, reach, reach, reach},
+    {collide, collide, collide, collide, collide, collide, collide},
+    {gameover, gameover, gameover, gameover, gameover, gameover, gameover},
+    {exitstate, exitstate, exitstate, exitstate, exitstate, exitstate,
+     exitstate},
+    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, pauseGame},
+};
+
+//
+//
+//
+//
+//
+
+bool checkBounds(game *tetris, int row, int column) {
+  return row >= 0 && column >= 0 && row < tetris->rows && column < tetris->cols;
+}
+
+bool tetrominoFits(game *tetris, tetris_block block) {
+  for (int i = 0; i < TETROMINO_SIZE; i++) {
+    tetris_location cell = TETRIS_FIGURE[block.type][block.orient][i];
+    int r = block.coordinates.row + cell.row;
+    int c = block.coordinates.col + cell.col;
+    if (!checkBounds(tetris, r, c) || getCell(tetris, r, c) != 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 GameInfo_t *updateCurrentState(game *tetris) {
   GameInfo_t *data = (GameInfo_t *)malloc(sizeof(GameInfo_t));
   data->field = tetris->board;
@@ -26,7 +133,7 @@ void newFallingFigure(game *tetris) {
   tetris->next_tetromino.orient = 0;
   tetris->next_tetromino.coordinates.row = 0;
   tetris->next_tetromino.coordinates.col = tetris->cols / 2 - 2;
-};
+}
 
 int **allocateBoard(int height, int width) {
   int **board = (int **)calloc(height, sizeof(int *) + width * sizeof(int));
@@ -37,7 +144,7 @@ int **allocateBoard(int height, int width) {
     }
   }
   return board;
-};
+}
 
 void freeBoard(game *tetris) {
   if (tetris->board) {
@@ -61,15 +168,14 @@ game *gameInit(int rows, int cols) {
   new->board = allocateBoard(new->rows, new->cols);
   new->points = 0;
   new->level = 0;
-  new->tick_till_drop = 0;
+  new->tick_till_drop = GRAVITY_LEVEL[new->level];
   new->points_remaining = POINTS_PER_LEVEL;
   srand(time(NULL));
   newFallingFigure(new);
   new->next_tetromino.coordinates.col = new->cols / 2 - 2;
-  newFallingFigure(new);
 
   return new;
-};
+}
 
 void printtetris(WINDOW *w) {
   box(w, 0, 0);
@@ -100,7 +206,7 @@ void finiteStateMachine(UserAction_t sig, tetris_state *state, game *tetris) {
           *state = EXIT_STATE;
           break;
         case Pause:
-          *state = STOP;
+          *state = PAUSE;
         default:
           *state = START;
           break;
@@ -142,13 +248,21 @@ void finiteStateMachine(UserAction_t sig, tetris_state *state, game *tetris) {
 }
 
 void placeTetromino(game *tetris, tetris_block piece) {
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < TETROMINO_SIZE; i++) {
     tetris_location cell = TETRIS_FIGURE[piece.type][piece.orient][i];
 
     setCell(tetris, piece.coordinates.row + cell.row,
             piece.coordinates.col + cell.col, piece.type + 1);
   }
 }
+
+void placeNextTetromino(game *tetris, tetris_block piece) {
+  for (int i = 0; i < TETROMINO_SIZE; i++) {
+    tetris_location cell = TETRIS_FIGURE[piece.type][piece.orient][i];
+    tetris->next->next[cell.row][cell.col] = piece.type + 1;
+  }
+}
+
 void removeTetromino(game *tetris, tetris_block piece) {
   for (int i = 0; i < 4; i++) {
     tetris_location cell = TETRIS_FIGURE[piece.type][piece.orient][i];

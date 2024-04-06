@@ -46,6 +46,7 @@ typedef struct {
   int tick_till_drop;
 
   int points_remaining;
+  GameInfo_t *next;
 
   tetris_block falling_tetromino;
   tetris_block next_tetromino;
@@ -57,10 +58,20 @@ typedef enum {
   MOVING,
   SHIFTING,
   ATTACHING,
-  STOP,
+  PAUSE,
   GAMEOVER,
   EXIT_STATE
 } tetris_state;
+
+typedef struct game_params {
+  game *stats;
+  tetris_state *state;
+  // board_t *map;
+  // player_pos *frog_pos;
+  // bool *break_flag;
+} params_t;
+
+typedef void (*action)(params_t *prms);
 
 int getCell(game *tetris, int row, int column);
 extern tetris_location TETRIS_FIGURE[7][4][4];
