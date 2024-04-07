@@ -77,4 +77,11 @@ int getCell(game *tetris, int row, int column);
 extern tetris_location TETRIS_FIGURE[7][4][4];
 extern int GRAVITY_LEVEL[19 + 1];
 
+bool tetrominoFits(game *tetris, tetris_block block);
+void placeTetromino(game *tetris, tetris_block piece);
+void removeTetromino(game *tetris, tetris_block piece);
+void newFallingFigure(game *tetris);
+void setCell(game *tetris, int row, int column, int value);
+int getCell(game *tetris, int row, int column);
+void attaching(params_t *prms);
 #endif

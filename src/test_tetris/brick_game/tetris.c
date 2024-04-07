@@ -6,12 +6,14 @@
 void exitstate(params_t *prms) { *prms->state = EXIT_STATE; }
 
 void spawn(params_t *prms) {
+  newFallingFigure(prms->stats);
   if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino))
-    *prms->state = GAMEOVER;
+    exit(EXIT_FAILURE);
+
+  // *prms->state = GAMEOVER;
   else {
-    newFallingFigure(prms->stats);
     placeTetromino(prms->stats, prms->stats->falling_tetromino);
-    *prms->state = MOVING;
+    // *prms->state = MOVING;
   }
 }
 
@@ -19,11 +21,14 @@ void moveDown(params_t *prms) {
   removeTetromino(prms->stats, prms->stats->falling_tetromino);
   prms->stats->falling_tetromino.coordinates.row++;
   if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
-    *prms->state = SHIFTING;
+    placeTetromino(prms->stats, prms->stats->falling_tetromino);
+    // *prms->state = SHIFTING;
   } else {
     prms->stats->falling_tetromino.coordinates.row--;
     placeTetromino(prms->stats, prms->stats->falling_tetromino);
-    *prms->state = SPAWN;
+    spawn(prms);
+    attaching(prms);
+    // *prms->state = ATTACHING;
   }
 }
 
@@ -32,7 +37,8 @@ void moveRight(params_t *prms) {
   prms->stats->falling_tetromino.coordinates.col++;
   if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
     placeTetromino(prms->stats, prms->stats->falling_tetromino);
-    *prms->state = SHIFTING;
+    printw(" %d", prms->stats->falling_tetromino.type);
+    // *prms->state = SHIFTING;
   } else {
     prms->stats->falling_tetromino.coordinates.col--;
     placeTetromino(prms->stats, prms->stats->falling_tetromino);
@@ -44,7 +50,8 @@ void moveLeft(params_t *prms) {
   prms->stats->falling_tetromino.coordinates.col--;
   if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
     placeTetromino(prms->stats, prms->stats->falling_tetromino);
-    *prms->state = SHIFTING;
+    printw(" %d", prms->stats->falling_tetromino.type);
+    // *prms->state = SHIFTING;
   } else {
     prms->stats->falling_tetromino.coordinates.col++;
     placeTetromino(prms->stats, prms->stats->falling_tetromino);
@@ -60,13 +67,26 @@ void pauseGame(params_t *prms) {
 
 void rotate(params_t *prms) {
   removeTetromino(prms->stats, prms->stats->falling_tetromino);
-  prms->stats->falling_tetromino.orient++;
+  if (prms->stats->falling_tetromino.type != 3) {
+    prms->stats->falling_tetromino.orient++;
+    printw("ROTATING");
+  }
   if (prms->stats->falling_tetromino.orient == 4) {
     prms->stats->falling_tetromino.orient = 0;
-    prms->state = SHIFTING;
+
+    // *prms->state = SHIFTING;
+  }
+  if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
+    printw("%d", prms->stats->falling_tetromino.orient);
+    printw(" %d", prms->stats->falling_tetromino.type);
+    placeTetromino(prms->stats, prms->stats->falling_tetromino);
+  } else {
+    prms->stats->falling_tetromino.orient--;
+    placeTetromino(prms->stats, prms->stats->falling_tetromino);
   }
 }
 
+//????????? not sure if this gonna work
 void shifting(params_t *prms) {
   if (prms->stats->tick_till_drop-- <= 0) {
     prms->stats->tick_till_drop = GRAVITY_LEVEL[prms->stats->level];
@@ -74,19 +94,48 @@ void shifting(params_t *prms) {
   }
 }
 
+bool lineFull(game *tetris, int row) {
+  bool full = true;
+  for (int j = 0; j < tetris->cols; j++) {
+    if (getCell(tetris, row, j) == 0) full = false;
+  }
+  return full;
+}
+void shiftDown(game *tetris, int row) {
+  for (int i = row - 1; i >= 0; i--) {
+    for (int j = 0; j < tetris->cols; j++) {
+      setCell(tetris, i + 1, j, getCell(tetris, i, j));
+      // setCell(tetris, i, j, 0);
+    }
+  }
+}
+
+void attaching(params_t *prms) {
+  removeTetromino(prms->stats, prms->stats->falling_tetromino);
+  int lines_destroyed = 0;
+  for (int i = prms->stats->rows - 1; i >= 0; i--) {
+    if (lineFull(prms->stats, i)) {
+      shiftDown(prms->stats, i);
+      i++;
+      lines_destroyed++;
+    }
+  }
+  // if (lines_destroyed != 0) countPoints();
+  placeTetromino(prms->stats, prms->stats->falling_tetromino);
+  // prms->state = SPAWN;
+}
+
 action fsm_table[8][8] = {
     {NULL, NULL, NULL, NULL, exitstate, spawn, NULL},
     {spawn, spawn, spawn, spawn, spawn, spawn, spawn},
     {/* moveup */ NULL, moveDown, moveRight, moveLeft, exitstate, rotate,
      pauseGame},
-    {shifting, shifting, shifting, shifting, shifting, shifting, shifting},
-    {reach, reach, reach, reach, reach, reach, reach},
-    {collide, collide, collide, collide, collide, collide, collide},
+    {attaching, attaching, attaching, attaching, attaching, attaching,
+     attaching},
     {gameover, gameover, gameover, gameover, gameover, gameover, gameover},
     {exitstate, exitstate, exitstate, exitstate, exitstate, exitstate,
      exitstate},
-    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, pauseGame},
-};
+    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, pauseGame}};
 
 //
 //
@@ -171,8 +220,9 @@ game *gameInit(int rows, int cols) {
   new->tick_till_drop = GRAVITY_LEVEL[new->level];
   new->points_remaining = POINTS_PER_LEVEL;
   srand(time(NULL));
-  newFallingFigure(new);
   new->next_tetromino.coordinates.col = new->cols / 2 - 2;
+  newFallingFigure(new);
+  newFallingFigure(new);
 
   return new;
 }
@@ -293,17 +343,38 @@ void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
   UserAction_t signal = 8;
   bool hold = FALSE;
   tetris_state state = START;
+  params_t prms;
+  prms.stats = tetris;
+  bool paus = false;
+  bool press = false;
+  // prms.state = state;
 
   // int endgame = 1;  //временная переменная
 
   while (running) {
-    signal = getch();
     placeTetromino(tetris, tetris->falling_tetromino);
+    signal = getch();
+    if (paus == false) {
+      shifting(&prms);
+      if (signal == KEY_LEFT) moveLeft(&prms);
+      if (signal == KEY_RIGHT) moveRight(&prms);
+      if (signal == KEY_DOWN) moveDown(&prms);
+      if (signal == KEY_UP) rotate(&prms);
+    }
+    // attaching(&prms);
+
     // checkData(board, tetris->board);
 
     displayField(board, data);
     if (state == GAMEOVER || state == EXIT_STATE) running = FALSE;
-    if (signal == 'p') printw("%d", CONVERT_TO_CELL(randomTetromino()));
+    // if (signal == 'p') printw("%d", CONVERT_TO_CELL(randomTetromino()));
+    if (signal == 'p' && press == false) {
+      paus = true;
+      press = true;
+    } else if (signal == 'p' && press == true) {
+      paus = false;
+      press = false;
+    }
     // userInput(&signal, hold);
     // finiteStateMachine(&signal, &state, tetris);
     // printFigure(board);
@@ -313,7 +384,8 @@ void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
     free(data);
 
     // newFallingFigure(tetris);
-    delay_output(50);
+    refresh();
+    delay_output(10);
     // halfdelay(10);
   }
 }
@@ -324,6 +396,7 @@ int main() {
   game *tetris;
   GameInfo_t *tetris_data;
   // bool running = true;
+  init_colors();
 
   board = createNewWindow(board, BOARD_WIDTH, BOARDS_BEGIN);
   sidebar = createNewWindow(sidebar, HUD_WIDTH, BOARDS_BEGIN + BOARD_WIDTH + 2);

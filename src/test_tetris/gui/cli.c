@@ -52,14 +52,22 @@ GameInfo_t *gameStateInit(int rows, int cols) {
 
   return tetris;
 }
+// #define ADD_BLOCK(w, x)                         \
+//   waddch((w), 'O' | A_REVERSE | COLOR_PAIR(x)); \
+//   waddch((w), 'O' | A_REVERSE | COLOR_PAIR(x))
 
 void displayField(WINDOW *board, GameInfo_t *tetris) {
+  wclear(board);
+  box(board, 0, 0);
   for (int i = 0; i < BOARD_HEIGHT; i++) {
     for (int j = 0; j < BOARD_WIDTH; j++) {
       if (tetris->field[i][j]) {
-        WPRINTW(board, i, j, "1");
+        mvwaddch(board, i + 1, j + 1,
+                 'O' | A_REVERSE | COLOR_PAIR(tetris->field[i][j]));
+        // WPRINTW(board, i, j, "O");
       } else
-        WPRINTW(board, i, j, " ");
+        mvwaddch(board, i + 1, j + 1, ' ');
+      // WPRINTW(board, i, j, " ");
     }
   }
   wrefresh(board);
@@ -72,3 +80,15 @@ void displayField(WINDOW *board, GameInfo_t *tetris) {
 void print_stats(WINDOW *sidebar) {}
 
 // void allocate_field(GameInfo_t *game) {}
+
+void init_colors(void) {
+  start_color();
+  // init_color(COLOR_ORANGE, 1000, 647, 0);
+  init_pair(1, COLOR_CYAN, COLOR_BLACK);
+  init_pair(2, COLOR_BLUE, COLOR_BLACK);
+  init_pair(3, COLOR_WHITE, COLOR_BLACK);
+  init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(5, COLOR_GREEN, COLOR_BLACK);
+  init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(7, COLOR_RED, COLOR_BLACK);
+}
