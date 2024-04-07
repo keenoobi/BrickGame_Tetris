@@ -72,6 +72,21 @@ void displayField(WINDOW *board, GameInfo_t *tetris) {
   }
   wrefresh(board);
 }
+
+void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris) {
+  for (int i = 0; i < TETROMINO_SIZE; i++) {
+    for (int j = 0; j < TETROMINO_SIZE; j++) {
+      if (tetris->next[i][j]) {
+        // mvwaddch(sidebar, i + 1, j + 1,
+        //          '0' | A_REVERSE | COLOR_PAIR(tetris->next[i][j]));
+        WPRINTW(sidebar, i, j, "O");
+      } else
+        // mvwaddch(sidebar, i + 1, j + 1, ' ');
+        WPRINTW(sidebar, i, j, " ");
+    }
+  }
+  wrefresh(sidebar);
+}
 // GameInfo_t updateCurrentState() {
 //   GameInfo_t game;
 //   game.field

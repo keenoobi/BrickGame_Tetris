@@ -40,6 +40,8 @@ typedef struct tetris {
   int cols;
   int **board;
 
+  int **next_figure;
+
   int points;
   int level;
 
@@ -84,4 +86,6 @@ void newFallingFigure(game *tetris);
 void setCell(game *tetris, int row, int column, int value);
 int getCell(game *tetris, int row, int column);
 void attaching(params_t *prms);
+void placeNextTetromino(game *tetris, tetris_block piece);
+void removeNextTetromino(game *tetris, tetris_block piece);
 #endif

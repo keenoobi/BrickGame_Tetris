@@ -164,6 +164,7 @@ bool tetrominoFits(game *tetris, tetris_block block) {
 GameInfo_t *updateCurrentState(game *tetris) {
   GameInfo_t *data = (GameInfo_t *)malloc(sizeof(GameInfo_t));
   data->field = tetris->board;
+  data->next = tetris->next_figure;
 
   return data;
 }
@@ -184,6 +185,8 @@ void newFallingFigure(game *tetris) {
   tetris->next_tetromino.orient = 0;
   tetris->next_tetromino.coordinates.row = 0;
   tetris->next_tetromino.coordinates.col = tetris->cols / 2 - 2;
+  removeNextTetromino(tetris, tetris->next_tetromino);
+  placeNextTetromino(tetris, tetris->next_tetromino);
 }
 
 int **allocateBoard(int height, int width) {
@@ -201,6 +204,7 @@ void freeBoard(game *tetris) {
   if (tetris->board) {
     free(tetris->board);
   }
+  if (tetris->next_figure) free(tetris->next_figure);
 }
 
 void freeGame(game *tetris) {
@@ -217,6 +221,7 @@ game *gameInit(int rows, int cols) {
   new->rows = rows;
   new->cols = cols;
   new->board = allocateBoard(new->rows, new->cols);
+  new->next_figure = allocateBoard(TETROMINO_SIZE, TETROMINO_SIZE);
   new->points = 0;
   new->level = 0;
   new->tick_till_drop = GRAVITY_LEVEL[new->level];
@@ -311,7 +316,15 @@ void placeTetromino(game *tetris, tetris_block piece) {
 void placeNextTetromino(game *tetris, tetris_block piece) {
   for (int i = 0; i < TETROMINO_SIZE; i++) {
     tetris_location cell = TETRIS_FIGURE[piece.type][piece.orient][i];
-    tetris->next->next[cell.row][cell.col] = piece.type + 1;
+    tetris->next_figure[cell.row][cell.col] = piece.type + 1;
+  }
+}
+
+void removeNextTetromino(game *tetris, tetris_block piece) {
+  for (int i = 0; i < TETROMINO_SIZE; i++) {
+    for (int j = 0; j < TETROMINO_SIZE; j++) {
+      tetris->next_figure[i][j] = 0;
+    }
   }
 }
 
@@ -367,6 +380,7 @@ void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
     // checkData(board, tetris->board);
 
     displayField(board, data);
+    displayNextFigure(sidebar, data);
     if (state == GAMEOVER || state == EXIT_STATE) running = FALSE;
     // if (signal == 'p') printw("%d", CONVERT_TO_CELL(randomTetromino()));
     if (signal == 'p' && press == false) {
