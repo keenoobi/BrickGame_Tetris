@@ -12,8 +12,8 @@
 
 ```c
 typedef enum {
-    Start,
-    Pause,
+    Start = ,
+    Pause = ,
     Terminate,
     Left,
     Right,

@@ -18,12 +18,12 @@
 // } test;
 
 // void game_init(GameInfo_t *front, )
-typedef struct {
+typedef struct coord {
   int row;
   int col;
 } tetris_location;
 
-typedef struct {
+typedef struct tetromino {
   int type;
   int orient;
   tetris_location coordinates;
@@ -35,7 +35,7 @@ typedef struct {
 //   char* board;
 // } tetris_board;
 
-typedef struct {
+typedef struct tetris {
   int rows;
   int cols;
   int **board;

@@ -1,0 +1,27 @@
+{
+    "files.associations": {
+        "frogger.h": "c",
+        "__locale": "c",
+        "fsm.h": "c",
+        "defines.h": "c",
+        "frog_backend.h": "c",
+        "objects.h": "c",
+        "locale": "c",
+        "string": "c",
+        "ncurses.h": "c",
+        "random": "c",
+        "sstream": "c",
+        "cli.h": "c",
+        "frog_frontend.h": "c",
+        "tetris.h": "c",
+        "tic.h": "c",
+        "queue": "c",
+        "__config": "c",
+        "*.tcc": "c",
+        "ios": "c",
+        "array": "c",
+        "span": "c",
+        "string_view": "c",
+        "vector": "c"
+    }
+}

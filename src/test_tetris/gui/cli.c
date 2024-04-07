@@ -63,7 +63,7 @@ void displayField(WINDOW *board, GameInfo_t *tetris) {
     for (int j = 0; j < BOARD_WIDTH; j++) {
       if (tetris->field[i][j]) {
         mvwaddch(board, i + 1, j + 1,
-                 'O' | A_REVERSE | COLOR_PAIR(tetris->field[i][j]));
+                 '0' | A_REVERSE | COLOR_PAIR(tetris->field[i][j]));
         // WPRINTW(board, i, j, "O");
       } else
         mvwaddch(board, i + 1, j + 1, ' ');
