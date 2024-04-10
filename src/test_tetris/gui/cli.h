@@ -25,20 +25,21 @@
 #define TETROMINO_SIZE 4
 
 #define ESC_KEY 27
+#define ENTER_KEY 10
 
 #define WPRINTW(window, y, x, ...) \
   mvwprintw((window), 1 + (y), 1 + (x), __VA_ARGS__)
 
 typedef enum {
-  Start,
-  Pause,
-  Terminate,
-  Left,
-  Right,
-  Up,
+  None = 0,
   Down,
-  Action
-} UserAction_t;
+  Right,
+  Left,
+  Rotate,
+  ESC,
+  Enter,
+  Pause
+} Signals_t;
 
 typedef struct {
   int **field;
@@ -50,7 +51,7 @@ typedef struct {
   int pause;
 } GameInfo_t;
 
-void userInput(UserAction_t action, bool hold);
+// void userInput(UserAction_t action, bool hold);
 // GameInfo_t updateCurrentState();
 
 void printBoard(WINDOW *board, WINDOW *sidebar);

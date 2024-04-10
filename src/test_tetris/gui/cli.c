@@ -57,17 +57,17 @@ GameInfo_t *gameStateInit(int rows, int cols) {
 //   waddch((w), 'O' | A_REVERSE | COLOR_PAIR(x))
 
 void displayField(WINDOW *board, GameInfo_t *tetris) {
-  wclear(board);
+  // wclear(board);
   box(board, 0, 0);
   for (int i = 0; i < BOARD_HEIGHT; i++) {
     for (int j = 0; j < BOARD_WIDTH; j++) {
       if (tetris->field[i][j]) {
         mvwaddch(board, i + 1, j + 1,
-                 '0' | A_REVERSE | COLOR_PAIR(tetris->field[i][j]));
+                 ' ' | A_REVERSE | COLOR_PAIR(tetris->field[i][j]));
         // WPRINTW(board, i, j, "O");
       } else
-        mvwaddch(board, i + 1, j + 1, ' ');
-      // WPRINTW(board, i, j, " ");
+        // mvwaddch(board, i + 1, j + 1, ' ');
+        WPRINTW(board, i, j, " ");
     }
   }
   wrefresh(board);
@@ -77,12 +77,12 @@ void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris) {
   for (int i = 0; i < TETROMINO_SIZE; i++) {
     for (int j = 0; j < TETROMINO_SIZE; j++) {
       if (tetris->next[i][j]) {
-        // mvwaddch(sidebar, i + 1, j + 1,
-        //          '0' | A_REVERSE | COLOR_PAIR(tetris->next[i][j]));
-        WPRINTW(sidebar, i, j, "O");
+        mvwaddch(sidebar, i + 1, j + 1,
+                 '0' | A_REVERSE | COLOR_PAIR(tetris->next[i][j]));
+        // WPRINTW(sidebar, i, j, "O");
       } else
-        // mvwaddch(sidebar, i + 1, j + 1, ' ');
-        WPRINTW(sidebar, i, j, " ");
+        mvwaddch(sidebar, i + 1, j + 1, ' ');
+      // WPRINTW(sidebar, i, j, " ");
     }
   }
   wrefresh(sidebar);

@@ -55,14 +55,13 @@ typedef struct tetris {
 } game;
 
 typedef enum {
-  START = 0,
+  START,
   SPAWN,
   MOVING,
-  SHIFTING,
   ATTACHING,
-  PAUSE,
   GAMEOVER,
-  EXIT_STATE
+  EXIT_STATE,
+  PAUSE
 } tetris_state;
 
 typedef struct game_params {
