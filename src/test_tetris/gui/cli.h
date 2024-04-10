@@ -60,6 +60,7 @@ void freeGameInfo(GameInfo_t *tetris);
 void displayField(WINDOW *board, GameInfo_t *tetris);
 void init_colors(void);
 void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris);
+void printStats(WINDOW *sidebar, GameInfo_t *tetris);
 
 // void displayBoard(WINDOW *board, game *tetris);
 // void print_stats(WINDOW *sidebar);

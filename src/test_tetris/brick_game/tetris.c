@@ -2,6 +2,7 @@
 
 // #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 void exitstate(params_t *prms) { *prms->state = EXIT_STATE; }
 
@@ -59,6 +60,21 @@ void pauseGame(params_t *prms) {
     *prms->state = MOVING;
 }
 
+void checkSides(params_t *prms) {
+  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
+      prms->stats->falling_tetromino.coordinates.col >= 7)
+    prms->stats->falling_tetromino.coordinates.col--;
+  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
+      prms->stats->falling_tetromino.coordinates.col >= 7)
+    prms->stats->falling_tetromino.coordinates.col--;
+  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
+      prms->stats->falling_tetromino.coordinates.col <= 2)
+    prms->stats->falling_tetromino.coordinates.col++;
+  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
+      prms->stats->falling_tetromino.coordinates.col <= 2)
+    prms->stats->falling_tetromino.coordinates.col++;
+}
+
 void rotate(params_t *prms) {
   removeTetromino(prms->stats, prms->stats->falling_tetromino);
   if (prms->stats->falling_tetromino.type != 3) {
@@ -67,39 +83,20 @@ void rotate(params_t *prms) {
   if (prms->stats->falling_tetromino.orient == 4) {
     prms->stats->falling_tetromino.orient = 0;
   }
-  // if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
-  //   // printw("%d", prms->stats->falling_tetromino.orient);
-  //   // printw(" %d", prms->stats->falling_tetromino.type);
-  //   placeTetromino(prms->stats, prms->stats->falling_tetromino);
-  // } else {
-  //   // prms->stats->falling_tetromino.orient--;
-  //   placeTetromino(prms->stats, prms->stats->falling_tetromino);
-  // }
+  int tmp_col = prms->stats->falling_tetromino.coordinates.col;
+  int tmp_ori = prms->stats->falling_tetromino.orient;
 
-  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino))
-    prms->stats->falling_tetromino.coordinates.col--;
-  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino))
-    prms->stats->falling_tetromino.coordinates.col += 2;
-  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino))
-    prms->stats->falling_tetromino.coordinates.col--;
-  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino))
-    prms->stats->falling_tetromino.coordinates.col += 2;
+  checkSides(prms);
 
-  printw("%d ", prms->stats->falling_tetromino.orient + 1);
-  // if (tetrominoFits(prms->stats, prms->stats->falling_tetromino))
+  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
+    prms->stats->falling_tetromino.coordinates.col = tmp_col;
+    prms->stats->falling_tetromino.orient = tmp_ori - 1;
+    if (prms->stats->falling_tetromino.orient < 0)
+      prms->stats->falling_tetromino.orient = 3;
+  }
   placeTetromino(prms->stats, prms->stats->falling_tetromino);
 }
 
-void check(params_t *prms) {
-  // if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
-  //   placeTetromino(prms->stats, prms->stats->falling_tetromino);
-  if (*prms->state == MOVING) *prms->state = MOVING;
-  // else if (prms->state == SHIFTING)
-  //   prms->state = MOVING;
-  // }
-}
-
-//????????? not sure if this gonna work
 void shifting(params_t *prms) {
   if (prms->stats->tick_till_drop-- <= 0) {
     prms->stats->tick_till_drop = GRAVITY_LEVEL[prms->stats->level];
@@ -123,6 +120,48 @@ void shiftDown(game *tetris, int row) {
   }
 }
 
+bool loadHighestScore(int *record, const char *filename) {
+  bool state = true;
+  FILE *load = fopen(filename, "rb");
+  if (!load) return state = false;
+
+  size_t count = fread(record, sizeof(int), 1, load);
+  fclose(load);
+
+  if (!count) state = false;
+  return state;
+}
+
+bool saveHighestScore(int *record, const char *filename) {
+  bool state = true;
+  FILE *save = fopen(filename, "wb");
+  if (!save) return state = false;
+
+  size_t count = fwrite(record, sizeof(int), 1, save);
+  fclose(save);
+
+  if (!count) state = false;
+  return state;
+}
+
+void updateLevel(params_t *prms) {
+  int current_level = prms->stats->score / POINTS_PER_LEVEL;
+
+  if (current_level > 10) current_level = 10;
+  prms->stats->level = current_level;
+}
+
+void countPoints(params_t *prms, int lines) {
+  if (!lines) return;
+  int points_number = kScoreForCompleteLiens[lines - 1];
+  prms->stats->score += points_number;
+  if (prms->stats->score > POINTS_PER_LEVEL) updateLevel(prms);
+  if (prms->stats->score > prms->stats->record) {
+    prms->stats->record = prms->stats->score;
+    printw("%d", saveHighestScore(&prms->stats->record, RECORDS_FILE));
+  }
+}
+
 void attaching(params_t *prms) {
   // removeTetromino(prms->stats, prms->stats->falling_tetromino);
   int lines_destroyed = 0;
@@ -133,7 +172,7 @@ void attaching(params_t *prms) {
       lines_destroyed++;
     }
   }
-  if (lines_destroyed != 0) printw("%d", lines_destroyed);
+  countPoints(prms, lines_destroyed);
   // placeTetromino(prms->stats, prms->stats->falling_tetromino);
   *prms->state = SPAWN;
 }
@@ -185,6 +224,9 @@ GameInfo_t *updateCurrentState(game *tetris) {
   GameInfo_t *data = (GameInfo_t *)malloc(sizeof(GameInfo_t));
   data->field = tetris->board;
   data->next = tetris->next_figure;
+  data->level = tetris->level;
+  data->score = tetris->score;
+  data->high_score = tetris->record;
 
   return data;
 }
@@ -242,7 +284,10 @@ game *gameInit(int rows, int cols) {
   new->cols = cols;
   new->board = allocateBoard(new->rows, new->cols);
   new->next_figure = allocateBoard(TETROMINO_SIZE, TETROMINO_SIZE);
-  new->points = 0;
+  new->score = 0;
+  new->record = 0;
+  loadHighestScore(&new->record, RECORDS_FILE);
+  // if (loadHighestScore(&new->record, RECORDS_FILE)) new->record = 0;
   new->level = 0;
   new->tick_till_drop = GRAVITY_LEVEL[new->level];
   new->points_remaining = POINTS_PER_LEVEL;
@@ -367,8 +412,9 @@ void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
 
     // checkData(board, tetris->board);
 
-    displayField(board, data);
-    displayNextFigure(sidebar, data);
+    if (state == MOVING) displayField(board, data);
+    if (state == MOVING) displayNextFigure(sidebar, data);
+    if (state == MOVING) printStats(sidebar, data);
 
     free(data);
     data = updateCurrentState(tetris);
@@ -424,7 +470,7 @@ int main() {
   return 0;
 }
 
-tetris_location TETRIS_FIGURE[7][4][4] = {
+const tetris_location TETRIS_FIGURE[7][4][4] = {
     // I
     {{{1, 0}, {1, 1}, {1, 2}, {1, 3}},
      {{0, 2}, {1, 2}, {2, 2}, {3, 2}},

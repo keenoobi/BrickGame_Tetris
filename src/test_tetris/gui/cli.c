@@ -6,10 +6,10 @@ void printBoard(WINDOW *board, WINDOW *sidebar) {
   refresh();
 
   // mvwprintw(board, 1, 1, "@");
-  // mvwprintw(sidebar, 1, 2, "Score");
-  // mvwprintw(sidebar, 4, 2, "Record");
-  // mvwprintw(sidebar, 7, 2, "Level");
-  // mvwprintw(sidebar, 10, 2, "Next");
+  mvwprintw(sidebar, 1, 2, "Score");
+  mvwprintw(sidebar, 4, 2, "Record");
+  mvwprintw(sidebar, 7, 2, "Level");
+  mvwprintw(sidebar, 10, 2, "Next");
   // print_stats(sidebar);
   // wnoutrefresh(board);
   // wnoutrefresh(sidebar);
@@ -77,11 +77,11 @@ void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris) {
   for (int i = 0; i < TETROMINO_SIZE; i++) {
     for (int j = 0; j < TETROMINO_SIZE; j++) {
       if (tetris->next[i][j]) {
-        mvwaddch(sidebar, i + 1, j + 1,
-                 '0' | A_REVERSE | COLOR_PAIR(tetris->next[i][j]));
+        mvwaddch(sidebar, i + 12, j + 3,
+                 ' ' | A_REVERSE | COLOR_PAIR(tetris->next[i][j]));
         // WPRINTW(sidebar, i, j, "O");
       } else
-        mvwaddch(sidebar, i + 1, j + 1, ' ');
+        mvwaddch(sidebar, i + 12, j + 3, ' ');
       // WPRINTW(sidebar, i, j, " ");
     }
   }
@@ -92,7 +92,11 @@ void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris) {
 //   game.field
 // }
 
-void print_stats(WINDOW *sidebar) {}
+void printStats(WINDOW *sidebar, GameInfo_t *tetris) {
+  mvwprintw(sidebar, 2, 4, "%d", tetris->score);
+  mvwprintw(sidebar, 5, 4, "%d", tetris->high_score);
+  mvwprintw(sidebar, 8, 4, "%d", tetris->level);
+}
 
 // void allocate_field(GameInfo_t *game) {}
 

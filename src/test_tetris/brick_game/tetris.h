@@ -6,6 +6,9 @@
 #define POINTS_PER_LEVEL 600
 #define NUM_TETROMINOES 7
 #define CONVERT_TO_CELL(x) (x + 1)
+#define RECORDS_FILE "record.save"
+
+static const int kScoreForCompleteLiens[4] = {100, 300, 700, 1500};
 
 // typedef struct {
 //   int rows, cols;
@@ -42,7 +45,8 @@ typedef struct tetris {
 
   int **next_figure;
 
-  int points;
+  int score;
+  int record;
   int level;
 
   int tick_till_drop;
@@ -75,7 +79,7 @@ typedef struct game_params {
 typedef void (*action)(params_t *prms);
 
 int getCell(game *tetris, int row, int column);
-extern tetris_location TETRIS_FIGURE[7][4][4];
+extern const tetris_location TETRIS_FIGURE[7][4][4];
 extern int GRAVITY_LEVEL[19 + 1];
 
 bool tetrominoFits(game *tetris, tetris_block block);
