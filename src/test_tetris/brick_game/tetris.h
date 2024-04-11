@@ -52,7 +52,6 @@ typedef struct tetris {
   int tick_till_drop;
 
   int points_remaining;
-  GameInfo_t *next;
 
   tetris_block falling_tetromino;
   tetris_block next_tetromino;
@@ -68,9 +67,19 @@ typedef enum {
   PAUSE
 } tetris_state;
 
+typedef struct windows {
+  WINDOW *board;
+  WINDOW *sidebar;
+  WINDOW *start;
+  WINDOW *pause;
+  WINDOW *end;
+} windows;
+
 typedef struct game_params {
   game *stats;
   tetris_state *state;
+  windows w;
+  bool *game_over;
   // board_t *map;
   // player_pos *frog_pos;
   // bool *break_flag;
@@ -81,6 +90,9 @@ typedef void (*action)(params_t *prms);
 int getCell(game *tetris, int row, int column);
 extern const tetris_location TETRIS_FIGURE[7][4][4];
 extern int GRAVITY_LEVEL[19 + 1];
+
+WINDOW *createNewWindow(WINDOW *w, int width, int x);
+game *gameInit(int rows, int cols);
 
 bool tetrominoFits(game *tetris, tetris_block block);
 void placeTetromino(game *tetris, tetris_block piece);

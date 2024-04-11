@@ -17,6 +17,33 @@ void printBoard(WINDOW *board, WINDOW *sidebar) {
   wrefresh(sidebar);
 }
 
+void printPause(WINDOW *w) {
+  box(w, 0, 0);
+  mvwprintw(w, 10, 4, "PAUSE");
+  wrefresh(w);
+}
+
+void printEnd(WINDOW *w) {
+  box(w, 0, 0);
+  refresh();
+
+  mvwprintw(w, 5, 6, "GAME OVER");
+  mvwprintw(w, 10, 5, "Press ENTER");
+  mvwprintw(w, 11, 4, "to start again");
+
+  wrefresh(w);
+}
+
+void printStart(WINDOW *w) {
+  box(w, 0, 0);
+  refresh();
+
+  mvwprintw(w, 10, 5, "Press ENTER");
+  mvwprintw(w, 11, 6, "to start");
+
+  wrefresh(w);
+}
+
 void freeFieldAndFigure(GameInfo_t *tetris) {
   if (tetris->field) free(tetris->field);
   if (tetris->next) free(tetris->next);
@@ -74,6 +101,7 @@ void displayField(WINDOW *board, GameInfo_t *tetris) {
 }
 
 void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris) {
+  box(sidebar, 0, 0);
   for (int i = 0; i < TETROMINO_SIZE; i++) {
     for (int j = 0; j < TETROMINO_SIZE; j++) {
       if (tetris->next[i][j]) {

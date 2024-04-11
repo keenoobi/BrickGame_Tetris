@@ -54,10 +54,16 @@ void moveLeft(params_t *prms) {
 }
 
 void pauseGame(params_t *prms) {
-  if (*prms->state != PAUSE)
+  // WINDOW *pause = createNewWindow(pause, BOARD_WIDTH, BOARDS_BEGIN);
+  if (*prms->state != PAUSE) {
     *prms->state = PAUSE;
-  else
+    printPause(prms->w.pause);
+  } else {
+    wclear(prms->w.pause);
+    wrefresh(prms->w.pause);
     *prms->state = MOVING;
+  }
+  // delwin(prms->w->start);
 }
 
 void checkSides(params_t *prms) {
@@ -111,6 +117,7 @@ bool lineFull(game *tetris, int row) {
   }
   return full;
 }
+
 void shiftDown(game *tetris, int row) {
   for (int i = row - 1; i >= 0; i--) {
     for (int j = 0; j < tetris->cols; j++) {
@@ -177,7 +184,17 @@ void attaching(params_t *prms) {
   *prms->state = SPAWN;
 }
 
-void gameOver(params_t *prms) { exit(EXIT_FAILURE); }
+void gameOver(params_t *prms) {
+  printEnd(prms->w.end);
+  *prms->game_over = TRUE;
+  for (int i = 0; i < BOARD_HEIGHT; i++) {
+    for (int j = 0; j < BOARD_WIDTH; j++) {
+      prms->stats->board[i][j] = 0;
+    }
+  }
+
+  *prms->state = START;
+}
 
 //
 //
@@ -227,7 +244,6 @@ GameInfo_t *updateCurrentState(game *tetris) {
   data->level = tetris->level;
   data->score = tetris->score;
   data->high_score = tetris->record;
-
   return data;
 }
 
@@ -276,8 +292,6 @@ void freeGame(game *tetris) {
   }
 }
 
-bool checkEndGame(game *) { return true; }  //нужно дописать
-
 game *gameInit(int rows, int cols) {
   game *new = (game *)malloc(sizeof(game));
   new->rows = rows;
@@ -287,7 +301,6 @@ game *gameInit(int rows, int cols) {
   new->score = 0;
   new->record = 0;
   loadHighestScore(&new->record, RECORDS_FILE);
-  // if (loadHighestScore(&new->record, RECORDS_FILE)) new->record = 0;
   new->level = 0;
   new->tick_till_drop = GRAVITY_LEVEL[new->level];
   new->points_remaining = POINTS_PER_LEVEL;
@@ -297,18 +310,6 @@ game *gameInit(int rows, int cols) {
   newFallingFigure(new);
 
   return new;
-}
-
-void printtetris(WINDOW *w) {
-  box(w, 0, 0);
-  // refresh();
-  // wrefresh(w);
-}
-
-void printFigure(WINDOW *w) {
-  mvwprintw(w, 5, 5, "@");
-  // refresh();
-  wrefresh(w);
 }
 
 WINDOW *createNewWindow(WINDOW *w, int width, int x) {
@@ -350,8 +351,8 @@ void removeTetromino(game *tetris, tetris_block piece) {
 
 void checkData(WINDOW *w, int **field) {
   int i, j;
-  for (i = 0; i < 20; i++) {
-    for (j = 0; j < 10; j++) {
+  for (i = 0; i < BOARD_HEIGHT; i++) {
+    for (j = 0; j < BOARD_WIDTH; j++) {
       mvwprintw(w, i + 1, j + 1, "%d", field[i][j]);
     }
     mvwprintw(w, i + 1, j + 1, "\n");
@@ -386,31 +387,37 @@ Signals_t get_signal(int user_input) {
   return rc;
 }
 
-void sigact(Signals_t signal, tetris_state *state, game *tetris) {
+void sigact(Signals_t signal, tetris_state *state, game *tetris,
+            bool *game_over_flag) {
   params_t prms;
   prms.stats = tetris;
   prms.state = state;
-  // printw("%d ", *state);
+  prms.game_over = game_over_flag;
+  prms.w.pause = createNewWindow(prms.w.pause, BOARD_WIDTH, BOARDS_BEGIN);
+  prms.w.start =
+      createNewWindow(prms.w.start, BOARD_WIDTH + HUD_WIDTH + 2, BOARDS_BEGIN);
+  prms.w.end =
+      createNewWindow(prms.w.end, BOARD_WIDTH + HUD_WIDTH + 2, BOARDS_BEGIN);
+  if (*prms.state == START && *prms.game_over == FALSE)
+    printStart(prms.w.start);
 
   action act = fsm_table[*state][signal];
 
   if (act) act(&prms);
 }
 
-void userInput(Signals_t action, bool hold) {}
-
-void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
+void gameLoop(WINDOW *board, WINDOW *sidebar, WINDOW *start, game *tetris,
+              GameInfo_t *data) {
   bool running = TRUE;
   int signal = 0;
   bool hold = FALSE;
+  bool game_over = FALSE;
   tetris_state state = START;
 
   while (running) {
     signal = getch();
 
-    sigact(get_signal(signal), &state, tetris);
-
-    // checkData(board, tetris->board);
+    sigact(get_signal(signal), &state, tetris, &game_over);
 
     if (state == MOVING) displayField(board, data);
     if (state == MOVING) displayNextFigure(sidebar, data);
@@ -420,52 +427,42 @@ void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
     data = updateCurrentState(tetris);
 
     refresh();
-    if (state == GAMEOVER || state == EXIT_STATE) running = FALSE;
+    if (state == EXIT_STATE) running = FALSE;
     delay_output(5);
-    // halfdelay(10);
   }
   free(data);
 }
 
 int main() {
   WIN_INIT(1);
-  WINDOW *board, *sidebar;
+  windows w;
+
   game *tetris;
   GameInfo_t *tetris_data;
   init_colors();
 
-  board = createNewWindow(board, BOARD_WIDTH, BOARDS_BEGIN);
-  sidebar = createNewWindow(sidebar, HUD_WIDTH, BOARDS_BEGIN + BOARD_WIDTH + 2);
+  w.board = createNewWindow(w.board, BOARD_WIDTH, BOARDS_BEGIN);
+  w.sidebar =
+      createNewWindow(w.sidebar, HUD_WIDTH, BOARDS_BEGIN + BOARD_WIDTH + 2);
   tetris = gameInit(BOARD_HEIGHT, BOARD_WIDTH);
   tetris_data = gameStateInit(BOARD_HEIGHT, BOARD_WIDTH);
 
-  printBoard(board, sidebar);
+  printBoard(w.board, w.sidebar);
 
-  gameLoop(board, sidebar, tetris, tetris_data);
+  gameLoop(w.board, w.sidebar, w.start, tetris, tetris_data);
 
   freeGame(tetris);
   freeGameInfo(tetris_data);
 
-  wclear(board);
-  wclear(sidebar);
+  wclear(w.board);
+  wclear(w.sidebar);
   wclear(stdscr);
 
-  delwin(board);
-  delwin(sidebar);
+  delwin(w.board);
+  delwin(w.sidebar);
   delwin(stdscr);
 
   endwin();
-
-  //   int height, width, start_x, start_y;
-  //   height = 21;
-  //   width = 11;
-  //   start_x = 2;
-  //   start_y = 2;
-  //   start_color();
-  //   init_pair(1, 0, 5);
-  //   bkgd(COLOR_PAIR(1));
-
-  // getchar();
 
   return 0;
 }

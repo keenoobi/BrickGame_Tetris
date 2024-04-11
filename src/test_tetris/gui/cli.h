@@ -54,6 +54,8 @@ typedef struct {
 // void userInput(UserAction_t action, bool hold);
 // GameInfo_t updateCurrentState();
 
+void printStart(WINDOW *w);
+void printEnd(WINDOW *w);
 void printBoard(WINDOW *board, WINDOW *sidebar);
 GameInfo_t *gameStateInit(int rows, int cols);
 void freeGameInfo(GameInfo_t *tetris);
@@ -61,6 +63,7 @@ void displayField(WINDOW *board, GameInfo_t *tetris);
 void init_colors(void);
 void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris);
 void printStats(WINDOW *sidebar, GameInfo_t *tetris);
+void printPause();
 
 // void displayBoard(WINDOW *board, game *tetris);
 // void print_stats(WINDOW *sidebar);
