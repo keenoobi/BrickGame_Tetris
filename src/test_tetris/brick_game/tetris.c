@@ -21,7 +21,6 @@ void moveDown(params_t *prms) {
   prms->stats->falling_tetromino.coordinates.row++;
   if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
     placeTetromino(prms->stats, prms->stats->falling_tetromino);
-
   } else {
     prms->stats->falling_tetromino.coordinates.row--;
     placeTetromino(prms->stats, prms->stats->falling_tetromino);
@@ -46,7 +45,6 @@ void moveLeft(params_t *prms) {
   prms->stats->falling_tetromino.coordinates.col--;
   if (tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
     placeTetromino(prms->stats, prms->stats->falling_tetromino);
-
   } else {
     prms->stats->falling_tetromino.coordinates.col++;
     placeTetromino(prms->stats, prms->stats->falling_tetromino);
@@ -54,7 +52,6 @@ void moveLeft(params_t *prms) {
 }
 
 void pauseGame(params_t *prms) {
-  // WINDOW *pause = createNewWindow(pause, BOARD_WIDTH, BOARDS_BEGIN);
   if (*prms->state != PAUSE) {
     *prms->state = PAUSE;
     printPause(prms->w.pause);
@@ -63,10 +60,10 @@ void pauseGame(params_t *prms) {
     wrefresh(prms->w.pause);
     *prms->state = MOVING;
   }
-  // delwin(prms->w->start);
+  delwin(prms->w.pause);
 }
 
-void checkSides(params_t *prms) {
+void checkSides(params_t *prms, int col, int ori) {
   if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
       prms->stats->falling_tetromino.coordinates.col >= 7)
     prms->stats->falling_tetromino.coordinates.col--;
@@ -79,27 +76,24 @@ void checkSides(params_t *prms) {
   if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
       prms->stats->falling_tetromino.coordinates.col <= 2)
     prms->stats->falling_tetromino.coordinates.col++;
+  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
+    prms->stats->falling_tetromino.coordinates.col = col;
+    prms->stats->falling_tetromino.orient = ori;
+    if (prms->stats->falling_tetromino.orient < 0)
+      prms->stats->falling_tetromino.orient = 3;
+  }
 }
 
 void rotate(params_t *prms) {
   removeTetromino(prms->stats, prms->stats->falling_tetromino);
-  if (prms->stats->falling_tetromino.type != 3) {
-    prms->stats->falling_tetromino.orient++;
-  }
-  if (prms->stats->falling_tetromino.orient == 4) {
-    prms->stats->falling_tetromino.orient = 0;
-  }
   int tmp_col = prms->stats->falling_tetromino.coordinates.col;
   int tmp_ori = prms->stats->falling_tetromino.orient;
 
-  checkSides(prms);
+  if (prms->stats->falling_tetromino.type != 3 &&
+      prms->stats->falling_tetromino.orient++ >= 3)
+    prms->stats->falling_tetromino.orient = 0;
 
-  if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
-    prms->stats->falling_tetromino.coordinates.col = tmp_col;
-    prms->stats->falling_tetromino.orient = tmp_ori - 1;
-    if (prms->stats->falling_tetromino.orient < 0)
-      prms->stats->falling_tetromino.orient = 3;
-  }
+  checkSides(prms, tmp_col, tmp_ori);
   placeTetromino(prms->stats, prms->stats->falling_tetromino);
 }
 
@@ -122,7 +116,6 @@ void shiftDown(game *tetris, int row) {
   for (int i = row - 1; i >= 0; i--) {
     for (int j = 0; j < tetris->cols; j++) {
       setCell(tetris, i + 1, j, getCell(tetris, i, j));
-      // setCell(tetris, i, j, 0);
     }
   }
 }
@@ -153,7 +146,6 @@ bool saveHighestScore(int *record, const char *filename) {
 
 void updateLevel(params_t *prms) {
   int current_level = prms->stats->score / POINTS_PER_LEVEL;
-
   if (current_level > 10) current_level = 10;
   prms->stats->level = current_level;
 }
@@ -165,33 +157,38 @@ void countPoints(params_t *prms, int lines) {
   if (prms->stats->score > POINTS_PER_LEVEL) updateLevel(prms);
   if (prms->stats->score > prms->stats->record) {
     prms->stats->record = prms->stats->score;
-    printw("%d", saveHighestScore(&prms->stats->record, RECORDS_FILE));
+    saveHighestScore(&prms->stats->record, RECORDS_FILE);
   }
 }
 
 void attaching(params_t *prms) {
-  // removeTetromino(prms->stats, prms->stats->falling_tetromino);
   int lines_destroyed = 0;
-  for (int i = prms->stats->rows - 1; i >= 0; i--) {
-    if (lineFull(prms->stats, i)) {
-      shiftDown(prms->stats, i);
-      i++;
+  for (int row = prms->stats->rows - 1; row >= 0; row--) {
+    if (lineFull(prms->stats, row)) {
+      shiftDown(prms->stats, row);
+      row++;
       lines_destroyed++;
     }
   }
   countPoints(prms, lines_destroyed);
-  // placeTetromino(prms->stats, prms->stats->falling_tetromino);
   *prms->state = SPAWN;
 }
 
-void gameOver(params_t *prms) {
-  printEnd(prms->w.end);
-  *prms->game_over = TRUE;
+void resetData(params_t *prms) {
   for (int i = 0; i < BOARD_HEIGHT; i++) {
     for (int j = 0; j < BOARD_WIDTH; j++) {
       prms->stats->board[i][j] = 0;
     }
   }
+  prms->stats->level = 0;
+  prms->stats->score = 0;
+}
+
+void gameOver(params_t *prms) {
+  printEnd(prms->w.end);
+  *prms->game_over = TRUE;
+
+  resetData(prms);
 
   *prms->state = START;
 }
@@ -398,16 +395,23 @@ void sigact(Signals_t signal, tetris_state *state, game *tetris,
       createNewWindow(prms.w.start, BOARD_WIDTH + HUD_WIDTH + 2, BOARDS_BEGIN);
   prms.w.end =
       createNewWindow(prms.w.end, BOARD_WIDTH + HUD_WIDTH + 2, BOARDS_BEGIN);
+
   if (*prms.state == START && *prms.game_over == FALSE)
     printStart(prms.w.start);
 
   action act = fsm_table[*state][signal];
 
   if (act) act(&prms);
+
+  if (*prms.state == EXIT_STATE) {
+    printw("TEST");
+    delwin(prms.w.pause);
+    delwin(prms.w.start);
+    delwin(prms.w.end);
+  }
 }
 
-void gameLoop(WINDOW *board, WINDOW *sidebar, WINDOW *start, game *tetris,
-              GameInfo_t *data) {
+void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
   bool running = TRUE;
   int signal = 0;
   bool hold = FALSE;
@@ -422,6 +426,7 @@ void gameLoop(WINDOW *board, WINDOW *sidebar, WINDOW *start, game *tetris,
     if (state == MOVING) displayField(board, data);
     if (state == MOVING) displayNextFigure(sidebar, data);
     if (state == MOVING) printStats(sidebar, data);
+    if (state == GAMEOVER) wclear(sidebar);
 
     free(data);
     data = updateCurrentState(tetris);
@@ -447,9 +452,9 @@ int main() {
   tetris = gameInit(BOARD_HEIGHT, BOARD_WIDTH);
   tetris_data = gameStateInit(BOARD_HEIGHT, BOARD_WIDTH);
 
-  printBoard(w.board, w.sidebar);
+  // printBoard(w.board, w.sidebar);
 
-  gameLoop(w.board, w.sidebar, w.start, tetris, tetris_data);
+  gameLoop(w.board, w.sidebar, tetris, tetris_data);
 
   freeGame(tetris);
   freeGameInfo(tetris_data);

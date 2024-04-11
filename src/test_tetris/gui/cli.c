@@ -6,10 +6,7 @@ void printBoard(WINDOW *board, WINDOW *sidebar) {
   refresh();
 
   // mvwprintw(board, 1, 1, "@");
-  mvwprintw(sidebar, 1, 2, "Score");
-  mvwprintw(sidebar, 4, 2, "Record");
-  mvwprintw(sidebar, 7, 2, "Level");
-  mvwprintw(sidebar, 10, 2, "Next");
+
   // print_stats(sidebar);
   // wnoutrefresh(board);
   // wnoutrefresh(sidebar);
@@ -121,9 +118,15 @@ void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris) {
 // }
 
 void printStats(WINDOW *sidebar, GameInfo_t *tetris) {
+  box(sidebar, 0, 0);
+  mvwprintw(sidebar, 1, 2, "Score");
+  mvwprintw(sidebar, 4, 2, "Record");
+  mvwprintw(sidebar, 7, 2, "Level");
+  mvwprintw(sidebar, 10, 2, "Next");
   mvwprintw(sidebar, 2, 4, "%d", tetris->score);
   mvwprintw(sidebar, 5, 4, "%d", tetris->high_score);
   mvwprintw(sidebar, 8, 4, "%d", tetris->level);
+  wrefresh(sidebar);
 }
 
 // void allocate_field(GameInfo_t *game) {}
