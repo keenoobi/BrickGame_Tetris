@@ -5,6 +5,7 @@
 
 #define POINTS_PER_LEVEL 600
 #define NUM_TETROMINOES 7
+#define NUM_ORIENTATIONS 4
 #define EMPTY_CELL 0
 #define CONVERT_TO_CELL(x) (x + 1)
 #define RECORDS_FILE "record.save"
@@ -112,5 +113,4 @@ int getCell(game *tetris, int row, int column);
 void attaching(params_t *prms);
 void placeNextTetromino(game *tetris, tetris_block piece);
 void removeNextTetromino(game *tetris, tetris_block piece);
-void dataProcessing(int **data, int rows, int cols, int value);
 #endif

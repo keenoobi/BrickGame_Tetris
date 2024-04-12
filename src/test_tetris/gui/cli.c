@@ -1,19 +1,5 @@
 #include "cli.h"
 
-void printBoard(WINDOW *board, WINDOW *sidebar) {
-  box(board, 0, 0);
-  box(sidebar, 0, 0);
-  refresh();
-
-  // mvwprintw(board, 1, 1, "@");
-
-  // print_stats(sidebar);
-  // wnoutrefresh(board);
-  // wnoutrefresh(sidebar);
-  wrefresh(board);
-  wrefresh(sidebar);
-}
-
 void printPause(WINDOW *w) {
   box(w, 0, 0);
   mvwprintw(w, 10, 4, "PAUSE");
@@ -41,56 +27,13 @@ void printStart(WINDOW *w) {
   wrefresh(w);
 }
 
-// void freeFieldAndFigure(GameInfo_t *tetris) {
-//   if (tetris->field) free(tetris->field);
-//   if (tetris->next) free(tetris->next);
-// }
-
-void freeGameInfo(GameInfo_t *tetris) {
-  if (tetris) {
-    // freeFieldAndFigure(tetris);
-    free(tetris);
-  }
-}
-
-int **allocateMemory(int height, int width) {
-  int **field = (int **)calloc(height, sizeof(int *) + width * sizeof(int));
-  if (field != NULL) {
-    field[0] = (int *)(field + height);
-    for (int i = 1; i < height; i++) {
-      field[i] = field[0] + i * width;
-    }
-  }
-  return field;
-}
-
-// GameInfo_t *gameStateInit(int rows, int cols) {
-//   GameInfo_t *tetris = (GameInfo_t *)malloc(sizeof(GameInfo_t));
-//   tetris->field = allocateMemory(BOARD_HEIGHT + 2, BOARD_WIDTH);
-//   tetris->next = allocateMemory(TETROMINO_SIZE, TETROMINO_SIZE);
-//   tetris->score = 0;
-//   tetris->high_score = 0;
-//   tetris->level = 0;
-//   tetris->speed = 0;
-//   tetris->pause = 0;
-
-//   return tetris;
-// }
-// #define ADD_BLOCK(w, x)                         \
-//   waddch((w), 'O' | A_REVERSE | COLOR_PAIR(x)); \
-//   waddch((w), 'O' | A_REVERSE | COLOR_PAIR(x))
-
 void displayField(WINDOW *board, GameInfo_t *tetris) {
-  // wclear(board);
   box(board, 0, 0);
   for (int i = 0; i < BOARD_HEIGHT; i++) {
     for (int j = 0; j < BOARD_WIDTH; j++) {
       if (tetris->field[i][j]) {
-        mvwaddch(board, i + 1, j + 1,
-                 ' ' | A_REVERSE | COLOR_PAIR(tetris->field[i][j]));
-        // WPRINTW(board, i, j, "O");
+        mvwaddch(board, i + 1, j + 1, BLOCK(tetris->field[i][j]));
       } else
-        // mvwaddch(board, i + 1, j + 1, ' ');
         WPRINTW(board, i, j, " ");
     }
   }
@@ -104,18 +47,12 @@ void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris) {
       if (tetris->next[i][j]) {
         mvwaddch(sidebar, i + 12, j + 3,
                  ' ' | A_REVERSE | COLOR_PAIR(tetris->next[i][j]));
-        // WPRINTW(sidebar, i, j, "O");
       } else
         mvwaddch(sidebar, i + 12, j + 3, ' ');
-      // WPRINTW(sidebar, i, j, " ");
     }
   }
   wrefresh(sidebar);
 }
-// GameInfo_t updateCurrentState() {
-//   GameInfo_t game;
-//   game.field
-// }
 
 void printStats(WINDOW *sidebar, GameInfo_t *tetris) {
   box(sidebar, 0, 0);
@@ -129,11 +66,9 @@ void printStats(WINDOW *sidebar, GameInfo_t *tetris) {
   wrefresh(sidebar);
 }
 
-// void allocate_field(GameInfo_t *game) {}
-
-void init_colors(void) {
+void initColors(void) {
   start_color();
-  // init_color(COLOR_ORANGE, 1000, 647, 0);
+
   init_pair(1, COLOR_CYAN, COLOR_BLACK);
   init_pair(2, COLOR_BLUE, COLOR_BLACK);
   init_pair(3, COLOR_WHITE, COLOR_BLACK);

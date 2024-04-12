@@ -1,8 +1,6 @@
 #include "tetris.h"
 
-// #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
 
 void exitstate(params_t *prms) { *prms->state = EXIT_STATE; }
 
@@ -303,28 +301,6 @@ int **allocateBoard(int height, int width) {
   return board;
 }
 
-// void freeBoard(game *tetris) {
-//   if (tetris->board) {
-//     free(tetris->board);
-//   }
-//   if (tetris->next_figure) free(tetris->next_figure);
-// }
-
-void freeGame(game *tetris) {
-  if (tetris) {
-    // freeBoard(tetris);
-    free(tetris);
-  }
-}
-
-void dataProcessing(int **data, int rows, int cols, int value) {
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < cols; j++) {
-      data[i][j] = value;
-    }
-  }
-}
-
 game *gameInit(int rows, int cols) {
   game *new = (game *)malloc(sizeof(game));
   new->rows = rows;
@@ -345,7 +321,6 @@ WINDOW *createNewWindow(WINDOW *w, int width, int x) {
 void placeTetromino(game *tetris, tetris_block piece) {
   for (int i = 0; i < TETROMINO_SIZE; i++) {
     tetris_location cell = TETRIS_FIGURE[piece.type][piece.orient][i];
-
     setCell(tetris, piece.coordinates.row + cell.row,
             piece.coordinates.col + cell.col, piece.type + 1);
   }
@@ -438,23 +413,27 @@ void sigact(Signals_t signal, tetris_state *state, game *tetris,
   }
 }
 
+void graphicProcessing(WINDOW *board, WINDOW *sidebar, GameInfo_t *data,
+                       tetris_state *state) {
+  if (*state == MOVING) {
+    displayField(board, data);
+    displayNextFigure(sidebar, data);
+    printStats(sidebar, data);
+  }
+  if (*state == GAMEOVER) wclear(sidebar);
+}
+
 void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
   bool running = TRUE;
   bool game_over = FALSE;
   int signal = 0;
   tetris_state state = START;
-  // GameInfo_t data = {0};
 
   while (running) {
     signal = getch();
 
     sigact(get_signal(signal), &state, tetris, &game_over);
-
-    if (state == MOVING) displayField(board, data);
-    if (state == MOVING) displayNextFigure(sidebar, data);
-    if (state == MOVING) printStats(sidebar, data);
-    if (state == GAMEOVER) wclear(sidebar);
-
+    graphicProcessing(board, sidebar, data, &state);
     *data = updateCurrentState(tetris, data);
 
     refresh();
@@ -463,72 +442,76 @@ void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
   }
 }
 
+void clearWindows(windows *w) {
+  wclear(w->board);
+  wclear(w->sidebar);
+  wclear(stdscr);
+
+  delwin(w->board);
+  delwin(w->sidebar);
+  delwin(stdscr);
+}
+
 int main() {
   WIN_INIT(1);
   windows w;
-
   game *tetris = {0};
-  GameInfo_t tetris_data = {0};
-  init_colors();
+  GameInfo_t tetris_graphics = {0};
+
+  initColors();
 
   w.board = createNewWindow(w.board, BOARD_WIDTH, BOARDS_BEGIN);
   w.sidebar =
       createNewWindow(w.sidebar, HUD_WIDTH, BOARDS_BEGIN + BOARD_WIDTH + 2);
   tetris = gameInit(BOARD_HEIGHT, BOARD_WIDTH);
 
-  gameLoop(w.board, w.sidebar, tetris, &tetris_data);
+  gameLoop(w.board, w.sidebar, tetris, &tetris_graphics);
 
-  freeGame(tetris);
-
-  wclear(w.board);
-  wclear(w.sidebar);
-  wclear(stdscr);
-
-  delwin(w.board);
-  delwin(w.sidebar);
-  delwin(stdscr);
+  free(tetris);
+  clearWindows(&w);
 
   endwin();
 
   return 0;
 }
 
-const tetris_location TETRIS_FIGURE[7][4][4] = {
-    // I
-    {{{1, 0}, {1, 1}, {1, 2}, {1, 3}},
-     {{0, 2}, {1, 2}, {2, 2}, {3, 2}},
-     {{2, 0}, {2, 1}, {2, 2}, {2, 3}},
-     {{0, 1}, {1, 1}, {2, 1}, {3, 1}}},
-    // J
-    {{{0, 0}, {1, 0}, {1, 1}, {1, 2}},
-     {{0, 1}, {0, 2}, {1, 1}, {2, 1}},
-     {{1, 0}, {1, 1}, {1, 2}, {2, 2}},
-     {{0, 1}, {1, 1}, {2, 0}, {2, 1}}},
-    // L
-    {{{0, 2}, {1, 0}, {1, 1}, {1, 2}},
-     {{0, 1}, {1, 1}, {2, 1}, {2, 2}},
-     {{1, 0}, {1, 1}, {1, 2}, {2, 0}},
-     {{0, 0}, {0, 1}, {1, 1}, {2, 1}}},
-    // O
-    {{{0, 1}, {0, 2}, {1, 1}, {1, 2}},
-     {{0, 1}, {0, 2}, {1, 1}, {1, 2}},
-     {{0, 1}, {0, 2}, {1, 1}, {1, 2}},
-     {{0, 1}, {0, 2}, {1, 1}, {1, 2}}},
-    // S
-    {{{0, 1}, {0, 2}, {1, 0}, {1, 1}},
-     {{0, 1}, {1, 1}, {1, 2}, {2, 2}},
-     {{1, 1}, {1, 2}, {2, 0}, {2, 1}},
-     {{0, 0}, {1, 0}, {1, 1}, {2, 1}}},
-    // T
-    {{{0, 1}, {1, 0}, {1, 1}, {1, 2}},
-     {{0, 1}, {1, 1}, {1, 2}, {2, 1}},
-     {{1, 0}, {1, 1}, {1, 2}, {2, 1}},
-     {{0, 1}, {1, 0}, {1, 1}, {2, 1}}},
-    // Z
-    {{{0, 0}, {0, 1}, {1, 1}, {1, 2}},
-     {{0, 2}, {1, 1}, {1, 2}, {2, 1}},
-     {{1, 0}, {1, 1}, {2, 1}, {2, 2}},
-     {{0, 1}, {1, 0}, {1, 1}, {2, 0}}},
+const tetris_location TETRIS_FIGURE[NUM_TETROMINOES][NUM_ORIENTATIONS]
+                                   [TETROMINO_SIZE] = {
+                                       // I
+                                       {{{1, 0}, {1, 1}, {1, 2}, {1, 3}},
+                                        {{0, 2}, {1, 2}, {2, 2}, {3, 2}},
+                                        {{2, 0}, {2, 1}, {2, 2}, {2, 3}},
+                                        {{0, 1}, {1, 1}, {2, 1}, {3, 1}}},
+                                       // J
+                                       {{{0, 0}, {1, 0}, {1, 1}, {1, 2}},
+                                        {{0, 1}, {0, 2}, {1, 1}, {2, 1}},
+                                        {{1, 0}, {1, 1}, {1, 2}, {2, 2}},
+                                        {{0, 1}, {1, 1}, {2, 0}, {2, 1}}},
+                                       // L
+                                       {{{0, 2}, {1, 0}, {1, 1}, {1, 2}},
+                                        {{0, 1}, {1, 1}, {2, 1}, {2, 2}},
+                                        {{1, 0}, {1, 1}, {1, 2}, {2, 0}},
+                                        {{0, 0}, {0, 1}, {1, 1}, {2, 1}}},
+                                       // O
+                                       {{{0, 1}, {0, 2}, {1, 1}, {1, 2}},
+                                        {{0, 1}, {0, 2}, {1, 1}, {1, 2}},
+                                        {{0, 1}, {0, 2}, {1, 1}, {1, 2}},
+                                        {{0, 1}, {0, 2}, {1, 1}, {1, 2}}},
+                                       // S
+                                       {{{0, 1}, {0, 2}, {1, 0}, {1, 1}},
+                                        {{0, 1}, {1, 1}, {1, 2}, {2, 2}},
+                                        {{1, 1}, {1, 2}, {2, 0}, {2, 1}},
+                                        {{0, 0}, {1, 0}, {1, 1}, {2, 1}}},
+                                       // T
+                                       {{{0, 1}, {1, 0}, {1, 1}, {1, 2}},
+                                        {{0, 1}, {1, 1}, {1, 2}, {2, 1}},
+                                        {{1, 0}, {1, 1}, {1, 2}, {2, 1}},
+                                        {{0, 1}, {1, 0}, {1, 1}, {2, 1}}},
+                                       // Z
+                                       {{{0, 0}, {0, 1}, {1, 1}, {1, 2}},
+                                        {{0, 2}, {1, 1}, {1, 2}, {2, 1}},
+                                        {{1, 0}, {1, 1}, {2, 1}, {2, 2}},
+                                        {{0, 1}, {1, 0}, {1, 1}, {2, 0}}},
 };
 
 int GRAVITY_LEVEL[19 + 1] = {

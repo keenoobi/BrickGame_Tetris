@@ -29,6 +29,7 @@
 
 #define WPRINTW(window, y, x, ...) \
   mvwprintw((window), 1 + (y), 1 + (x), __VA_ARGS__)
+#define BLOCK(x) (' ' | A_REVERSE | COLOR_PAIR(x))
 
 typedef enum {
   None = 0,
@@ -60,7 +61,7 @@ void printBoard(WINDOW *board, WINDOW *sidebar);
 GameInfo_t *gameStateInit(int rows, int cols);
 void freeGameInfo(GameInfo_t *tetris);
 void displayField(WINDOW *board, GameInfo_t *tetris);
-void init_colors(void);
+void initColors(void);
 void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris);
 void printStats(WINDOW *sidebar, GameInfo_t *tetris);
 void printPause();
