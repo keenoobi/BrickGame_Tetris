@@ -15,13 +15,14 @@
     notimeout(stdscr, TRUE); \
     curs_set(0);             \
     keypad(stdscr, TRUE);    \
+    initColors();            \
     timeout(time);           \
   }
 
 #define BOARDS_BEGIN 2
 #define BOARD_HEIGHT 20
 #define BOARD_WIDTH 10
-#define HUD_WIDTH 8
+#define HUD_WIDTH 12
 #define TETROMINO_SIZE 4
 
 #define ESC_KEY 27
@@ -29,7 +30,13 @@
 
 #define WPRINTW(window, y, x, ...) \
   mvwprintw((window), 1 + (y), 1 + (x), __VA_ARGS__)
-#define BLOCK(x) (' ' | A_REVERSE | COLOR_PAIR(x))
+#define ADD_BLOCK(win, row, col, x)                                         \
+  mvwaddch((win), (row) + 1, (col)*2 + 1, ' ' | A_REVERSE | COLOR_PAIR(x)); \
+  mvwaddch((win), (row) + 1, (col)*2 + 2, ' ' | A_REVERSE | COLOR_PAIR(x))
+
+#define ADD_EMPTY(win, row, col)                \
+  mvwaddch((win), (row) + 1, (col)*2 + 1, ' '); \
+  mvwaddch((win), (row) + 1, (col)*2 + 2, ' ')
 
 typedef enum {
   None = 0,

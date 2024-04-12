@@ -155,7 +155,7 @@ void countPoints(params_t *prms, int lines) {
   if (!lines) return;
   int points_number = kScoreForCompleteLiens[lines - 1];
   prms->stats->score += points_number;
-  if (prms->stats->score > POINTS_PER_LEVEL) updateLevel(prms);
+  if (prms->stats->score >= POINTS_PER_LEVEL) updateLevel(prms);
   if (prms->stats->score > prms->stats->record) {
     prms->stats->record = prms->stats->score;
     saveHighestScore(&prms->stats->record, RECORDS_FILE);
@@ -186,19 +186,11 @@ void resetData(params_t *prms) {
 }
 
 void gameOver(params_t *prms) {
-  printEnd(prms->w.end);
   *prms->game_over = TRUE;
-
+  printEnd(prms->w.end);
   resetData(prms);
-
   *prms->state = START;
 }
-
-//
-//
-//
-//
-//
 
 action fsm_table[7][8] = {
     {NULL, NULL, NULL, NULL, NULL, exitstate, spawn, NULL},
@@ -211,12 +203,6 @@ action fsm_table[7][8] = {
     {exitstate, exitstate, exitstate, exitstate, exitstate, exitstate,
      exitstate},
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, pauseGame}};
-
-//
-//
-//
-//
-//
 
 bool checkBounds(game *tetris, int row, int column) {
   return row >= 0 && column >= 0 && row < tetris->rows && column < tetris->cols;
@@ -301,16 +287,15 @@ int **allocateBoard(int height, int width) {
   return board;
 }
 
-game *gameInit(int rows, int cols) {
-  game *new = (game *)malloc(sizeof(game));
-  new->rows = rows;
-  new->cols = cols;
-  loadHighestScore(&new->record, RECORDS_FILE);
-  new->tick_till_drop = GRAVITY_LEVEL[new->level];
-  new->points_remaining = POINTS_PER_LEVEL;
+void gameInit(game *tetris, int rows, int cols) {
+  tetris->rows = rows;
+  tetris->cols = cols;
+  tetris->level = 0;
+  loadHighestScore(&tetris->record, RECORDS_FILE);
+  tetris->tick_till_drop = GRAVITY_LEVEL[tetris->level];
+  tetris->points_remaining = POINTS_PER_LEVEL;
   srand(time(NULL));
-  newFallingFigure(new);
-  return new;
+  newFallingFigure(tetris);
 }
 
 WINDOW *createNewWindow(WINDOW *w, int width, int x) {
@@ -393,11 +378,11 @@ void sigact(Signals_t signal, tetris_state *state, game *tetris,
   prms.stats = tetris;
   prms.state = state;
   prms.game_over = game_over_flag;
-  prms.w.pause = createNewWindow(prms.w.pause, BOARD_WIDTH, BOARDS_BEGIN);
-  prms.w.start =
-      createNewWindow(prms.w.start, BOARD_WIDTH + HUD_WIDTH + 2, BOARDS_BEGIN);
-  prms.w.end =
-      createNewWindow(prms.w.end, BOARD_WIDTH + HUD_WIDTH + 2, BOARDS_BEGIN);
+  prms.w.pause = createNewWindow(prms.w.pause, BOARD_WIDTH * 2, BOARDS_BEGIN);
+  prms.w.start = createNewWindow(prms.w.start, BOARD_WIDTH * 2 + HUD_WIDTH + 2,
+                                 BOARDS_BEGIN);
+  prms.w.end = createNewWindow(prms.w.end, BOARD_WIDTH * 2 + HUD_WIDTH + 2,
+                               BOARDS_BEGIN);
 
   if (*prms.state == START && *prms.game_over == FALSE)
     printStart(prms.w.start);
@@ -423,7 +408,7 @@ void graphicProcessing(WINDOW *board, WINDOW *sidebar, GameInfo_t *data,
   if (*state == GAMEOVER) wclear(sidebar);
 }
 
-void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
+void gameLoop(windows *w, game *tetris, GameInfo_t *data) {
   bool running = TRUE;
   bool game_over = FALSE;
   int signal = 0;
@@ -431,44 +416,27 @@ void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
 
   while (running) {
     signal = getch();
-
     sigact(get_signal(signal), &state, tetris, &game_over);
-    graphicProcessing(board, sidebar, data, &state);
+    graphicProcessing(w->board, w->sidebar, data, &state);
     *data = updateCurrentState(tetris, data);
-
     refresh();
     if (state == EXIT_STATE) running = FALSE;
     delay_output(5);
   }
 }
 
-void clearWindows(windows *w) {
-  wclear(w->board);
-  wclear(w->sidebar);
-  wclear(stdscr);
-
-  delwin(w->board);
-  delwin(w->sidebar);
-  delwin(stdscr);
-}
-
 int main() {
   WIN_INIT(1);
   windows w;
-  game *tetris = {0};
+  game tetris = {0};
   GameInfo_t tetris_graphics = {0};
 
-  initColors();
-
-  w.board = createNewWindow(w.board, BOARD_WIDTH, BOARDS_BEGIN);
+  w.board = createNewWindow(w.board, BOARD_WIDTH * 2, BOARDS_BEGIN);
   w.sidebar =
-      createNewWindow(w.sidebar, HUD_WIDTH, BOARDS_BEGIN + BOARD_WIDTH + 2);
-  tetris = gameInit(BOARD_HEIGHT, BOARD_WIDTH);
+      createNewWindow(w.sidebar, HUD_WIDTH, BOARDS_BEGIN + BOARD_WIDTH * 2 + 2);
 
-  gameLoop(w.board, w.sidebar, tetris, &tetris_graphics);
-
-  free(tetris);
-  clearWindows(&w);
+  gameInit(&tetris, BOARD_HEIGHT, BOARD_WIDTH);
+  gameLoop(&w, &tetris, &tetris_graphics);
 
   endwin();
 

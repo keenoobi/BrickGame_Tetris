@@ -102,7 +102,7 @@ extern const tetris_location TETRIS_FIGURE[7][4][4];
 extern int GRAVITY_LEVEL[19 + 1];
 
 WINDOW *createNewWindow(WINDOW *w, int width, int x);
-game *gameInit(int rows, int cols);
+void gameInit(game *tetris, int rows, int cols);
 
 bool tetrominoFits(game *tetris, tetris_block block);
 void placeTetromino(game *tetris, tetris_block piece);
