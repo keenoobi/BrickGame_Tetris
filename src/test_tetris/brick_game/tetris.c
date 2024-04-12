@@ -63,19 +63,22 @@ void pauseGame(params_t *prms) {
   delwin(prms->w.pause);
 }
 
-void checkSides(params_t *prms, int col, int ori) {
+void checkRotationPossibility(params_t *prms, int col, int ori) {
+  // checking right side
   if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
       prms->stats->falling_tetromino.coordinates.col >= 7)
     prms->stats->falling_tetromino.coordinates.col--;
   if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
       prms->stats->falling_tetromino.coordinates.col >= 7)
     prms->stats->falling_tetromino.coordinates.col--;
+  // checking left side
   if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
       prms->stats->falling_tetromino.coordinates.col <= 2)
     prms->stats->falling_tetromino.coordinates.col++;
   if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
       prms->stats->falling_tetromino.coordinates.col <= 2)
     prms->stats->falling_tetromino.coordinates.col++;
+  // default check
   if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
     prms->stats->falling_tetromino.coordinates.col = col;
     prms->stats->falling_tetromino.orient = ori;
@@ -93,7 +96,7 @@ void rotate(params_t *prms) {
       prms->stats->falling_tetromino.orient++ >= 3)
     prms->stats->falling_tetromino.orient = 0;
 
-  checkSides(prms, tmp_col, tmp_ori);
+  checkRotationPossibility(prms, tmp_col, tmp_ori);
   placeTetromino(prms->stats, prms->stats->falling_tetromino);
 }
 
@@ -234,14 +237,15 @@ bool tetrominoFits(game *tetris, tetris_block block) {
   return fits;
 }
 
-GameInfo_t *updateCurrentState(game *tetris) {
-  GameInfo_t *data = (GameInfo_t *)malloc(sizeof(GameInfo_t));
-  data->field = tetris->board;
-  data->next = tetris->next_figure;
+GameInfo_t updateCurrentState(game *tetris, GameInfo_t *graphics) {
+  GameInfo_t *data = graphics;
+  TRANSFER_DATA(BOARD_HEIGHT, BOARD_WIDTH, data->field, tetris->board);
+  TRANSFER_DATA(TETROMINO_SIZE, TETROMINO_SIZE, data->next,
+                tetris->next_figure);
   data->level = tetris->level;
   data->score = tetris->score;
   data->high_score = tetris->record;
-  return data;
+  return *data;
 }
 
 int getCell(game *tetris, int row, int column) {
@@ -252,7 +256,31 @@ void setCell(game *tetris, int row, int column, int value) {
   tetris->board[row][column] = value;
 }
 
-static int randomTetromino() { return rand() % NUM_TETROMINOES; };
+void randomSortArray(int *arr) {
+  int temp = 0, j = 0;
+  for (int i = NUM_TETROMINOES - 1; i > 0; i--) {
+    j = rand() % (i + 1);
+    temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+  // for (int i = 0; i < NUM_TETROMINOES; i++) printw("%d", arr[i]);
+}
+
+int randomTetromino() {
+  static int tetrominos_array[NUM_TETROMINOES] = {0};
+  static int n = -1;
+  n++;
+  if (n >= NUM_TETROMINOES) n = 0;
+  if (n == 0) {
+    for (int i = 0; i < NUM_TETROMINOES; i++) {
+      tetrominos_array[i] = i;
+    }
+    randomSortArray(tetrominos_array);
+  }
+  // printw(" n%d p%d ", n, tetrominos_array[n]);
+  return tetrominos_array[n];
+};
 
 void newFallingFigure(game *tetris) {
   tetris->falling_tetromino = tetris->next_tetromino;
@@ -275,17 +303,25 @@ int **allocateBoard(int height, int width) {
   return board;
 }
 
-void freeBoard(game *tetris) {
-  if (tetris->board) {
-    free(tetris->board);
-  }
-  if (tetris->next_figure) free(tetris->next_figure);
-}
+// void freeBoard(game *tetris) {
+//   if (tetris->board) {
+//     free(tetris->board);
+//   }
+//   if (tetris->next_figure) free(tetris->next_figure);
+// }
 
 void freeGame(game *tetris) {
   if (tetris) {
-    freeBoard(tetris);
+    // freeBoard(tetris);
     free(tetris);
+  }
+}
+
+void dataProcessing(int **data, int rows, int cols, int value) {
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      data[i][j] = value;
+    }
   }
 }
 
@@ -293,19 +329,11 @@ game *gameInit(int rows, int cols) {
   game *new = (game *)malloc(sizeof(game));
   new->rows = rows;
   new->cols = cols;
-  new->board = allocateBoard(new->rows, new->cols);
-  new->next_figure = allocateBoard(TETROMINO_SIZE, TETROMINO_SIZE);
-  new->score = 0;
-  new->record = 0;
   loadHighestScore(&new->record, RECORDS_FILE);
-  new->level = 0;
   new->tick_till_drop = GRAVITY_LEVEL[new->level];
   new->points_remaining = POINTS_PER_LEVEL;
   srand(time(NULL));
-  new->next_tetromino.coordinates.col = new->cols / 2 - 2;
   newFallingFigure(new);
-  newFallingFigure(new);
-
   return new;
 }
 
@@ -404,7 +432,6 @@ void sigact(Signals_t signal, tetris_state *state, game *tetris,
   if (act) act(&prms);
 
   if (*prms.state == EXIT_STATE) {
-    printw("TEST");
     delwin(prms.w.pause);
     delwin(prms.w.start);
     delwin(prms.w.end);
@@ -413,10 +440,10 @@ void sigact(Signals_t signal, tetris_state *state, game *tetris,
 
 void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
   bool running = TRUE;
-  int signal = 0;
-  bool hold = FALSE;
   bool game_over = FALSE;
+  int signal = 0;
   tetris_state state = START;
+  // GameInfo_t data = {0};
 
   while (running) {
     signal = getch();
@@ -428,36 +455,30 @@ void gameLoop(WINDOW *board, WINDOW *sidebar, game *tetris, GameInfo_t *data) {
     if (state == MOVING) printStats(sidebar, data);
     if (state == GAMEOVER) wclear(sidebar);
 
-    free(data);
-    data = updateCurrentState(tetris);
+    *data = updateCurrentState(tetris, data);
 
     refresh();
     if (state == EXIT_STATE) running = FALSE;
     delay_output(5);
   }
-  free(data);
 }
 
 int main() {
   WIN_INIT(1);
   windows w;
 
-  game *tetris;
-  GameInfo_t *tetris_data;
+  game *tetris = {0};
+  GameInfo_t tetris_data = {0};
   init_colors();
 
   w.board = createNewWindow(w.board, BOARD_WIDTH, BOARDS_BEGIN);
   w.sidebar =
       createNewWindow(w.sidebar, HUD_WIDTH, BOARDS_BEGIN + BOARD_WIDTH + 2);
   tetris = gameInit(BOARD_HEIGHT, BOARD_WIDTH);
-  tetris_data = gameStateInit(BOARD_HEIGHT, BOARD_WIDTH);
 
-  // printBoard(w.board, w.sidebar);
-
-  gameLoop(w.board, w.sidebar, tetris, tetris_data);
+  gameLoop(w.board, w.sidebar, tetris, &tetris_data);
 
   freeGame(tetris);
-  freeGameInfo(tetris_data);
 
   wclear(w.board);
   wclear(w.sidebar);

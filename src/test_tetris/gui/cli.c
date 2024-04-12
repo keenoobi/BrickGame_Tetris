@@ -41,14 +41,14 @@ void printStart(WINDOW *w) {
   wrefresh(w);
 }
 
-void freeFieldAndFigure(GameInfo_t *tetris) {
-  if (tetris->field) free(tetris->field);
-  if (tetris->next) free(tetris->next);
-}
+// void freeFieldAndFigure(GameInfo_t *tetris) {
+//   if (tetris->field) free(tetris->field);
+//   if (tetris->next) free(tetris->next);
+// }
 
 void freeGameInfo(GameInfo_t *tetris) {
   if (tetris) {
-    freeFieldAndFigure(tetris);
+    // freeFieldAndFigure(tetris);
     free(tetris);
   }
 }
@@ -64,18 +64,18 @@ int **allocateMemory(int height, int width) {
   return field;
 }
 
-GameInfo_t *gameStateInit(int rows, int cols) {
-  GameInfo_t *tetris = (GameInfo_t *)malloc(sizeof(GameInfo_t));
-  tetris->field = allocateMemory(BOARD_HEIGHT + 2, BOARD_WIDTH);
-  tetris->next = allocateMemory(TETROMINO_SIZE, TETROMINO_SIZE);
-  tetris->score = 0;
-  tetris->high_score = 0;
-  tetris->level = 0;
-  tetris->speed = 0;
-  tetris->pause = 0;
+// GameInfo_t *gameStateInit(int rows, int cols) {
+//   GameInfo_t *tetris = (GameInfo_t *)malloc(sizeof(GameInfo_t));
+//   tetris->field = allocateMemory(BOARD_HEIGHT + 2, BOARD_WIDTH);
+//   tetris->next = allocateMemory(TETROMINO_SIZE, TETROMINO_SIZE);
+//   tetris->score = 0;
+//   tetris->high_score = 0;
+//   tetris->level = 0;
+//   tetris->speed = 0;
+//   tetris->pause = 0;
 
-  return tetris;
-}
+//   return tetris;
+// }
 // #define ADD_BLOCK(w, x)                         \
 //   waddch((w), 'O' | A_REVERSE | COLOR_PAIR(x)); \
 //   waddch((w), 'O' | A_REVERSE | COLOR_PAIR(x))

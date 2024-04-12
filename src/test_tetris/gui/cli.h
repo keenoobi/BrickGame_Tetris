@@ -42,8 +42,8 @@ typedef enum {
 } Signals_t;
 
 typedef struct {
-  int **field;
-  int **next;
+  int field[BOARD_HEIGHT][BOARD_WIDTH];
+  int next[TETROMINO_SIZE][TETROMINO_SIZE];
   int score;
   int high_score;
   int level;

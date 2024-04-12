@@ -5,8 +5,18 @@
 
 #define POINTS_PER_LEVEL 600
 #define NUM_TETROMINOES 7
+#define EMPTY_CELL 0
 #define CONVERT_TO_CELL(x) (x + 1)
 #define RECORDS_FILE "record.save"
+
+#define TRANSFER_DATA(ROWS, COLS, DEST, SRC) \
+  {                                          \
+    for (int _i = 0; _i < ROWS; _i++) {      \
+      for (int _j = 0; _j < COLS; _j++) {    \
+        DEST[_i][_j] = SRC[_i][_j];          \
+      }                                      \
+    }                                        \
+  }
 
 static const int kScoreForCompleteLiens[4] = {100, 300, 700, 1500};
 
@@ -41,9 +51,8 @@ typedef struct tetromino {
 typedef struct tetris {
   int rows;
   int cols;
-  int **board;
-
-  int **next_figure;
+  int board[BOARD_HEIGHT][BOARD_WIDTH];
+  int next_figure[TETROMINO_SIZE][TETROMINO_SIZE];
 
   int score;
   int record;
@@ -75,7 +84,7 @@ typedef struct windows {
   WINDOW *end;
 } windows;
 
-typedef struct game_params {
+typedef struct {
   game *stats;
   tetris_state *state;
   windows w;
@@ -103,4 +112,5 @@ int getCell(game *tetris, int row, int column);
 void attaching(params_t *prms);
 void placeNextTetromino(game *tetris, tetris_block piece);
 void removeNextTetromino(game *tetris, tetris_block piece);
+void dataProcessing(int **data, int rows, int cols, int value);
 #endif
