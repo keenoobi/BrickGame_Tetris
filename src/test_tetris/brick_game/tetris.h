@@ -21,17 +21,16 @@
 
 static const int kScoreForCompleteLiens[4] = {100, 300, 700, 1500};
 
-// typedef struct {
-//   int rows, cols;
-//   int **board;
-// } game;
+typedef enum {
+  START,
+  SPAWN,
+  MOVING,
+  ATTACHING,
+  GAMEOVER,
+  EXIT_STATE,
+  PAUSE
+} tetris_state;
 
-// typedef struct {
-//   int pos_x;
-//   int pos_y;
-// } test;
-
-// void game_init(GameInfo_t *front, )
 typedef struct coord {
   int row;
   int col;
@@ -43,39 +42,18 @@ typedef struct tetromino {
   tetris_location coordinates;
 } tetris_block;
 
-// typedef struct {
-//   int rows;
-//   int cols;
-//   char* board;
-// } tetris_board;
-
 typedef struct tetris {
   int rows;
   int cols;
   int board[BOARD_HEIGHT][BOARD_WIDTH];
   int next_figure[TETROMINO_SIZE][TETROMINO_SIZE];
-
   int score;
   int record;
   int level;
-
   int tick_till_drop;
-
-  int points_remaining;
-
   tetris_block falling_tetromino;
   tetris_block next_tetromino;
 } game;
-
-typedef enum {
-  START,
-  SPAWN,
-  MOVING,
-  ATTACHING,
-  GAMEOVER,
-  EXIT_STATE,
-  PAUSE
-} tetris_state;
 
 typedef struct windows {
   WINDOW *board;
@@ -90,14 +68,10 @@ typedef struct {
   tetris_state *state;
   windows w;
   bool *game_over;
-  // board_t *map;
-  // player_pos *frog_pos;
-  // bool *break_flag;
 } params_t;
 
 typedef void (*action)(params_t *prms);
 
-int getCell(game *tetris, int row, int column);
 extern const tetris_location TETRIS_FIGURE[7][4][4];
 extern int GRAVITY_LEVEL[19 + 1];
 

@@ -1,7 +1,9 @@
-#ifndef CLI_H
-#define CLI_H
+#ifndef TETRIS_FRONTEND_H
+#define TETRIS_FRONTEND_H
 
 #include <ncurses.h>
+
+#include "../../brick_game/tetris/inc/defines.h"
 
 #define WIN_INIT(time)       \
   {                          \
@@ -15,25 +17,6 @@
     initColors();            \
     timeout(time);           \
   }
-
-#define BOARDS_BEGIN 2
-#define BOARD_HEIGHT 20
-#define BOARD_WIDTH 10
-#define HUD_WIDTH 12
-#define TETROMINO_SIZE 4
-
-#define ESC_KEY 27
-#define ENTER_KEY 10
-
-#define WPRINTW(window, y, x, ...) \
-  mvwprintw((window), 1 + (y), 1 + (x), __VA_ARGS__)
-#define ADD_BLOCK(win, row, col, x)                                         \
-  mvwaddch((win), (row) + 1, (col)*2 + 1, ' ' | A_REVERSE | COLOR_PAIR(x)); \
-  mvwaddch((win), (row) + 1, (col)*2 + 2, ' ' | A_REVERSE | COLOR_PAIR(x))
-
-#define ADD_EMPTY(win, row, col)                \
-  mvwaddch((win), (row) + 1, (col)*2 + 1, ' '); \
-  mvwaddch((win), (row) + 1, (col)*2 + 2, ' ')
 
 typedef struct {
   int field[BOARD_HEIGHT][BOARD_WIDTH];
@@ -58,14 +41,14 @@ typedef enum {
 
 void printStart(WINDOW *w);
 void printEnd(WINDOW *w);
-void printBoard(WINDOW *board, WINDOW *sidebar);
-WINDOW *createNewWindow(WINDOW *w, int width, int x);
-GameInfo_t *gameStateInit(int rows, int cols);
-void freeGameInfo(GameInfo_t *tetris);
+// void printBoard(WINDOW *board, WINDOW *sidebar);
+// GameInfo_t *gameStateInit(int rows, int cols);
+// void freeGameInfo(GameInfo_t *tetris);
 void displayField(WINDOW *board, GameInfo_t *tetris);
 void initColors(void);
 void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris);
 void printStats(WINDOW *sidebar, GameInfo_t *tetris);
-void printPause();
+void printPause(WINDOW *w);
+WINDOW *createNewWindow(WINDOW *w, int width, int x);
 
 #endif

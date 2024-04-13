@@ -1,5 +1,6 @@
 #include "tetris.h"
 
+#include <stdlib.h>
 #include <time.h>
 
 void exitstate(params_t *prms) { *prms->state = EXIT_STATE; }
@@ -264,7 +265,7 @@ int randomTetromino() {
   }
   // printw(" n%d p%d ", n, tetrominos_array[n]);
   return tetrominos_array[n];
-};
+}
 
 void newFallingFigure(game *tetris) {
   tetris->falling_tetromino = tetris->next_tetromino;
@@ -276,31 +277,14 @@ void newFallingFigure(game *tetris) {
   placeNextTetromino(tetris, tetris->next_tetromino);
 }
 
-int **allocateBoard(int height, int width) {
-  int **board = (int **)calloc(height, sizeof(int *) + width * sizeof(int));
-  if (board != NULL) {
-    board[0] = (int *)(board + height);
-    for (int i = 1; i < height; i++) {
-      board[i] = board[0] + i * width;
-    }
-  }
-  return board;
-}
-
 void gameInit(game *tetris, int rows, int cols) {
   tetris->rows = rows;
   tetris->cols = cols;
   tetris->level = 0;
   loadHighestScore(&tetris->record, RECORDS_FILE);
   tetris->tick_till_drop = GRAVITY_LEVEL[tetris->level];
-  tetris->points_remaining = POINTS_PER_LEVEL;
   srand(time(NULL));
   newFallingFigure(tetris);
-}
-
-WINDOW *createNewWindow(WINDOW *w, int width, int x) {
-  w = newwin(BOARD_HEIGHT + 2, width + 2, BOARDS_BEGIN, x);
-  return w;
 }
 
 void placeTetromino(game *tetris, tetris_block piece) {
@@ -487,6 +471,3 @@ int GRAVITY_LEVEL[19 + 1] = {
     50, 48, 46, 44, 42, 40, 38, 36, 34, 32,
     // 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
     30, 28, 26, 24, 22, 20, 16, 12, 8, 4};
-
-// if (ch == 'p') printw("%d", CONVERT_TO_CELL(randomTetromino()));
-// running = check_end_game(tetris);

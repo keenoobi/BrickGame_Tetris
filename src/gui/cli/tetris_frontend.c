@@ -1,4 +1,4 @@
-#include "cli.h"
+#include "tetris_frontend.h"
 
 WINDOW *createNewWindow(WINDOW *w, int width, int x) {
   w = newwin(BOARD_HEIGHT + 2, width + 2, BOARDS_BEGIN, x);
