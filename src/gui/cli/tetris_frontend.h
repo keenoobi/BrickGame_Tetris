@@ -3,6 +3,7 @@
 
 #include <ncurses.h>
 
+#include "../../brick_game/tetris/inc/data.h"
 #include "../../brick_game/tetris/inc/defines.h"
 
 #define WIN_INIT(time)       \

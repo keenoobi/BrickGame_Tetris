@@ -1,6 +1,8 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -Werror -std=c11
-MAIN_PROJECT=$(wildcard **/**/*.c **/*.c ../**/*.c) # list of all the C source files in the project
+CURSES=-lncurses
+DIR=
+MAIN_PROJECT=$(wildcard **/**/*.c **/*.c ../gui/**/*.c) # list of all the C source files in the project
 SOURCES=$(filter-out , $(MAIN_PROJECT))
 TEST_SOURCES=$(filter-out , $(MAIN_PROJECT))
 MAIN=tetris_game
@@ -21,6 +23,9 @@ ifeq ($(OS),Darwin)
 endif
 
 all: $(RESULT)
+
+install: $(RESULT)
+	$(CC) $(CFLAGS) $^ $(CURSES) -o $(DIR)$(MAIN)
 
 test: $(TEST_OBJECTS) $(RESULT)
 	# clear
@@ -50,4 +55,4 @@ git:
 	git push origin develop
 
 clean:
-	rm -rf $(RESULT) $(OBJECTS) $(TEST_OBJECTS) $(TEST_RESULT) gcov_report* *.gc* report/ *.o $(MAIN)
+	rm -rf $(RESULT) $(OBJECTS) $(TEST_OBJECTS) $(TEST_RESULT) gcov_report* *.gc* report/ *.o $(DIR)$(MAIN)

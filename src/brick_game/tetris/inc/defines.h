@@ -1,8 +1,6 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-#include "data.h"
-
 #define POINTS_PER_LEVEL 600
 #define NUM_TETROMINOES 7
 #define NUM_ORIENTATIONS 4

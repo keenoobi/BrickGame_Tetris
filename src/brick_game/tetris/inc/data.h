@@ -1,8 +1,6 @@
 #ifndef DATA_H
 #define DATA_H
 
-#include "../tetris.h"
-
 #define BOARDS_BEGIN 2
 #define BOARD_HEIGHT 20
 #define BOARD_WIDTH 10
