@@ -56,3 +56,6 @@ git:
 
 clean:
 	rm -rf $(RESULT) $(OBJECTS) $(TEST_OBJECTS) $(TEST_RESULT) gcov_report* *.gc* report/ *.o $(DIR)$(MAIN)
+
+remove_save:
+	rm -rf $(DIR)record.save
