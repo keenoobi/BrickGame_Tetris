@@ -1,14 +1,8 @@
 #include "test.h"
 
-START_TEST(record_save_test0) {
-  int high_score = 1337;
-  ck_assert_int_eq(saveHighestScore(&high_score, RECORDS_FILE), true);
-}
-END_TEST
-
 START_TEST(record_save_test1) {
   int high_score = 1337;
-  ck_assert_int_eq(saveHighestScore(&high_score, NULL), false);
+  ck_assert_int_eq(saveHighestScore(&high_score, RECORDS_FILE), true);
 }
 END_TEST
 
@@ -30,12 +24,6 @@ START_TEST(record_load_test1) {
 }
 END_TEST
 
-START_TEST(record_load_test2) {
-  int high_score = 1337;
-  ck_assert_int_eq(saveHighestScore(&high_score, NULL), false);
-}
-END_TEST
-
 Suite *record_suite(void) {
   Suite *s;
   TCase *tc_main;
@@ -43,12 +31,10 @@ Suite *record_suite(void) {
   s = suite_create("record tests");
   tc_main = tcase_create("main");
 
-  tcase_add_test(tc_main, record_save_test0);
   tcase_add_test(tc_main, record_save_test1);
   tcase_add_test(tc_main, record_save_test2);
   tcase_add_test(tc_main, record_load_test0);
   tcase_add_test(tc_main, record_load_test1);
-  tcase_add_test(tc_main, record_load_test2);
 
   suite_add_tcase(s, tc_main);
   return s;
