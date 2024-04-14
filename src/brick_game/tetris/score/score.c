@@ -7,7 +7,7 @@ void updateLevel(params_t *prms) {
 }
 
 void countPoints(params_t *prms, int lines) {
-  if (!lines) return;
+  if (lines <= 0) return;
   int points_number = kScoreForCompleteLiens[lines - 1];
   prms->stats->score += points_number;
   if (prms->stats->score >= POINTS_PER_LEVEL) updateLevel(prms);

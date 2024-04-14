@@ -3,7 +3,7 @@
 bool loadHighestScore(int *record, const char *filename) {
   bool state = true;
   FILE *load = fopen(filename, "rb");
-  if (!load) return state = false;
+  if (!load || record == NULL) return state = false;
 
   size_t count = fread(record, sizeof(int), 1, load);
   fclose(load);
@@ -15,7 +15,7 @@ bool loadHighestScore(int *record, const char *filename) {
 bool saveHighestScore(int *record, const char *filename) {
   bool state = true;
   FILE *save = fopen(filename, "wb");
-  if (!save) return state = false;
+  if (!save || record == NULL) return state = false;
 
   size_t count = fwrite(record, sizeof(int), 1, save);
   fclose(save);

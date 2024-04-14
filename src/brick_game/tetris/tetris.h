@@ -5,4 +5,6 @@
 #include "tetris_backend.h"
 
 void gameLoop(windows *w, game *tetris, GameInfo_t *data);
+void graphicProcessing(WINDOW *board, WINDOW *sidebar, GameInfo_t *data,
+                       tetris_state *state);
 #endif

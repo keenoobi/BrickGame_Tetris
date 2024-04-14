@@ -42,9 +42,6 @@ typedef enum {
 
 void printStart(WINDOW *w);
 void printEnd(WINDOW *w);
-// void printBoard(WINDOW *board, WINDOW *sidebar);
-// GameInfo_t *gameStateInit(int rows, int cols);
-// void freeGameInfo(GameInfo_t *tetris);
 void displayField(WINDOW *board, GameInfo_t *tetris);
 void initColors(void);
 void displayNextFigure(WINDOW *sidebar, GameInfo_t *tetris);

@@ -1,9 +1,7 @@
 #include "helpers.h"
 
-#include <stdlib.h>
-#include <time.h>
-
-void checkRotationPossibility(params_t *prms, int col, int ori) {
+bool checkRotationPossibility(params_t *prms, int col, int ori) {
+  bool status = true;
   // checking right side
   if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino) &&
       prms->stats->falling_tetromino.coordinates.col >= 7)
@@ -22,9 +20,9 @@ void checkRotationPossibility(params_t *prms, int col, int ori) {
   if (!tetrominoFits(prms->stats, prms->stats->falling_tetromino)) {
     prms->stats->falling_tetromino.coordinates.col = col;
     prms->stats->falling_tetromino.orient = ori;
-    if (prms->stats->falling_tetromino.orient < 0)
-      prms->stats->falling_tetromino.orient = 3;
+    status = false;
   }
+  return status;
 }
 
 bool lineFull(game *tetris, int row) {
@@ -73,7 +71,6 @@ void randomSortArray(int *arr) {
     arr[i] = arr[j];
     arr[j] = temp;
   }
-  // for (int i = 0; i < NUM_TETROMINOES; i++) printw("%d", arr[i]);
 }
 
 void gameInit(game *tetris, int rows, int cols) {
@@ -84,14 +81,4 @@ void gameInit(game *tetris, int rows, int cols) {
   tetris->tick_till_drop = GRAVITY_LEVEL[tetris->level];
   srand(time(NULL));
   newFallingFigure(tetris);
-}
-
-void graphicProcessing(WINDOW *board, WINDOW *sidebar, GameInfo_t *data,
-                       tetris_state *state) {
-  if (*state == MOVING) {
-    displayField(board, data);
-    displayNextFigure(sidebar, data);
-    printStats(sidebar, data);
-  }
-  if (*state == GAMEOVER) wclear(sidebar);
 }

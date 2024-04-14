@@ -2,11 +2,11 @@ CC=gcc
 CFLAGS=-Wall -Wextra -Werror -std=c11
 CURSES=-lncurses
 DIR=
-MAIN_PROJECT=$(wildcard **/**/*.c **/*.c ../gui/**/*.c) # list of all the C source files in the project
-SOURCES=$(filter-out , $(MAIN_PROJECT))
-TEST_SOURCES=$(filter-out , $(MAIN_PROJECT))
+MAIN_PROJECT=$(wildcard **/**/*.c **/*.c ../gui/**/*.c ../backend_tests/*.c) # list of all the C source files in the project
+SOURCES=$(filter-out ../backend_tests/%.c, $(MAIN_PROJECT))
+TEST_SOURCES=$(filter-out tetris/tetris.c ../gui/cli/tetris_frontend.c tetris/fsm/fsm_matrix.c, $(MAIN_PROJECT))
 MAIN=tetris_game
-TEST_RESULT=tetris_tests/test
+TEST_RESULT=../backend_tests/test
 OBJECTS=$(SOURCES:.c=.o)
 TEST_OBJECTS=$(TEST_SOURCES:.c=.o)
 RESULT=tetris_game.a
@@ -27,7 +27,7 @@ all: $(RESULT)
 install: $(RESULT)
 	$(CC) $(CFLAGS) $^ $(CURSES) -o $(DIR)$(MAIN)
 
-test: $(TEST_OBJECTS) $(RESULT)
+test: $(TEST_OBJECTS) 
 	# clear
 	$(CC) $(CFLAGS) $^ -o $(TEST_RESULT) $(CHECK_LIB)
 	./$(TEST_RESULT)
@@ -38,7 +38,7 @@ $(RESULT): $(OBJECTS)
 .c.o:
 	$(CC) -c $(CFLAGS) $< -o $@
 
-gcov_report: $(TEST_SOURCES) $(SOURCES)
+gcov_report: $(TEST_SOURCES) 
 	$(CC) $(CFLAGS) --coverage $^ $(CHECK_LIB) -o $@
 	chmod +x *
 	./$@

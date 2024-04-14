@@ -34,3 +34,13 @@ void gameLoop(windows *w, game *tetris, GameInfo_t *data) {
     delay_output(5);
   }
 }
+
+void graphicProcessing(WINDOW *board, WINDOW *sidebar, GameInfo_t *data,
+                       tetris_state *state) {
+  if (*state == MOVING) {
+    displayField(board, data);
+    displayNextFigure(sidebar, data);
+    printStats(sidebar, data);
+  }
+  if (*state == GAMEOVER) wclear(sidebar);
+}
