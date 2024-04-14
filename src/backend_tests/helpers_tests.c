@@ -1,13 +1,4 @@
 #include "test.h"
-void checkData(int field[20][10]) {
-  int i, j;
-  for (i = 0; i < BOARD_HEIGHT; i++) {
-    for (j = 0; j < BOARD_WIDTH; j++) {
-      printf("%d", field[i][j]);
-    }
-    printf("\n");
-  }
-}
 
 START_TEST(helpers_rotation_loop_test0) {
   game test = {0};
