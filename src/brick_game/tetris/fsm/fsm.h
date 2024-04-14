@@ -6,7 +6,7 @@
 typedef void (*action)(params_t *prms);
 
 Signals_t get_signal(int user_input);
-void sigact(Signals_t signal, tetris_state *state, game *tetris,
+void sigact(Signals_t signal, windows *w, tetris_state *state, game *tetris,
             bool *game_over_flag);
 
 void exitstate(params_t *prms);

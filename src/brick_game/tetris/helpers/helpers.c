@@ -78,7 +78,7 @@ void gameInit(game *tetris, int rows, int cols) {
   tetris->cols = cols;
   tetris->level = 0;
   loadHighestScore(&tetris->record, RECORDS_FILE);
-  tetris->tick_till_drop = GRAVITY_LEVEL[tetris->level];
+  tetris->tick_till_drop = kGravityLevel[tetris->level];
   srand(time(NULL));
   newFallingFigure(tetris);
 }

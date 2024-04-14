@@ -2,7 +2,7 @@
 
 void updateLevel(params_t *prms) {
   int current_level = prms->stats->score / POINTS_PER_LEVEL;
-  if (current_level > 10) current_level = 10;
+  if (current_level >= 10) current_level = 9;
   prms->stats->level = current_level;
 }
 

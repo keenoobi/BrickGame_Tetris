@@ -25,10 +25,10 @@ void gameLoop(windows *w, game *tetris, GameInfo_t *data) {
   tetris_state state = START;
 
   while (running) {
-    signal = getch();
-    sigact(get_signal(signal), &state, tetris, &game_over);
-    graphicProcessing(w->board, w->sidebar, data, &state);
     *data = updateCurrentState(tetris, data);
+    signal = getch();
+    sigact(get_signal(signal), w, &state, tetris, &game_over);
+    graphicProcessing(w->board, w->sidebar, data, &state);
     refresh();
     if (state == EXIT_STATE) running = FALSE;
     delay_output(5);

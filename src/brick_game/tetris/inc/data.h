@@ -61,14 +61,12 @@ typedef struct {
 
 static const int kScoreForCompleteLiens[4] = {100, 300, 700, 1500};
 
-static const int GRAVITY_LEVEL[19 + 1] = {
+static const int kGravityLevel[10] = {
     // 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
-    50, 48, 46, 44, 42, 40, 38, 36, 34, 32,
-    // 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
-    30, 28, 26, 24, 22, 20, 16, 12, 8, 4};
+    50, 48, 46, 44, 42, 40, 38, 36, 34, 32};
 
 static const tetris_location
-    TETRIS_FIGURE[NUM_TETROMINOES][NUM_ORIENTATIONS][TETROMINO_SIZE] = {
+    kTetrisFigure[NUM_TETROMINOES][NUM_ORIENTATIONS][TETROMINO_SIZE] = {
         // I
         {{{1, 0}, {1, 1}, {1, 2}, {1, 3}},
          {{0, 2}, {1, 2}, {2, 2}, {3, 2}},

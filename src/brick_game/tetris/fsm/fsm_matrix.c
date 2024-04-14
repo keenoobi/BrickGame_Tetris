@@ -33,11 +33,12 @@ Signals_t get_signal(int user_input) {
   return rc;
 }
 
-void sigact(Signals_t signal, tetris_state *state, game *tetris,
+void sigact(Signals_t signal, windows *w, tetris_state *state, game *tetris,
             bool *game_over_flag) {
   params_t prms;
   prms.stats = tetris;
   prms.state = state;
+  prms.w = *w;
   prms.game_over = game_over_flag;
   prms.w.pause = createNewWindow(prms.w.pause, BOARD_WIDTH * 2, BOARDS_BEGIN);
   prms.w.start = createNewWindow(prms.w.start, BOARD_WIDTH * 2 + HUD_WIDTH + 2,
@@ -73,7 +74,7 @@ void spawn(params_t *prms) {
 
 void shifting(params_t *prms) {
   if (prms->stats->tick_till_drop-- <= 0) {
-    prms->stats->tick_till_drop = GRAVITY_LEVEL[prms->stats->level];
+    prms->stats->tick_till_drop = kGravityLevel[prms->stats->level];
     moveDown(prms);
   }
 }
