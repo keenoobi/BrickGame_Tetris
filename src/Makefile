@@ -73,6 +73,9 @@ gcov_report: $(TEST_SOURCES)
 clang:
 	clang-format -style=Google -n $(MAIN_PROJECT)
 
+valgrind:
+	CK_FORK=no valgrind --vgdb=no --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --read-var-info=yes $(TEST_RESULT)
+
 rungame: install
 	@./$(DIR)$(MAIN)
 
