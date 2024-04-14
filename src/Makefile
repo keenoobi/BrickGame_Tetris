@@ -5,9 +5,9 @@ DIR=
 DIST_DIR=archive
 MAIN_PROJECT=$(wildcard **/**/*.c **/**/**/*.c gui/**/*.c backend_tests/*.c) # list of all the C source files in the project
 SOURCES=$(filter-out backend_tests/%.c, $(MAIN_PROJECT))
-TEST_SOURCES=$(filter-out **/tetris/tetris.c gui/cli/tetris_frontend.c **/tetris/fsm/fsm_matrix.c, $(MAIN_PROJECT))
+TEST_SOURCES=$(filter-out %/tetris/tetris.c %/cli/tetris_frontend.c %/tetris/fsm/fsm_matrix.c, $(MAIN_PROJECT))
 MAIN=tetris.game
-TEST_RESULT=../backend_tests/test
+TEST_RESULT=backend_tests/test
 OBJECTS=$(SOURCES:.c=.o)
 TEST_OBJECTS=$(TEST_SOURCES:.c=.o)
 RESULT=tetris_game.a
@@ -32,7 +32,6 @@ install: $(RESULT)
 
 uninstall: clean
 	rm -f $(DIR)$(MAIN)
-	rm -f $(DIR)record.save
 
 test: $(TEST_OBJECTS) 
 	$(CC) $(CFLAGS) $^ -o $(TEST_RESULT) $(CHECK_LIB)
@@ -78,7 +77,7 @@ git:
 	git commit
 	git push origin develop
 
-clean:
+clean: clean_dist remove_save
 	rm -rf $(RESULT) $(OBJECTS) $(TEST_OBJECTS) $(TEST_RESULT) gcov_report* *.gc* report/ *.o $(DIR)$(MAIN)
 
 clean_dist:

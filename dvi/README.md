@@ -1,13 +1,3 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    <title>TETRIS DVI</title>
-</head>
-
-<body>
-    <textarea theme="slate">
-
 # BrickGame v1.0 aka Tetris
 
 BrickGame v1.0 is a Tetris game designed for terminal, created in the C programming language with the ncurses library. It offers the traditional Tetris gameplay along with features like scoring, advancing levels, and keeping track of high scores.
@@ -69,13 +59,3 @@ Or just use `make all` to install and run the game.
 ## Finite State Machine (FSM) Diagram
 
 ![FSM Diagram](media/fsm/fsm.png)
-    
-
-
-
-</textarea>
-    <script type="text/javascript" src="https://lbesson.bitbucket.io/md/strapdown.min.js"></script>
-    <script src="resize_images_script.js"></script>
-</body>
-
-</html>
