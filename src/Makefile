@@ -12,6 +12,7 @@ OBJECTS=$(SOURCES:.c=.o)
 TEST_OBJECTS=$(TEST_SOURCES:.c=.o)
 RESULT=tetris_game.a
 
+.PHONY: all clean install uninstall test gcov_report clang dvi dist rungame git
 OS := $(shell uname)
 ifeq ($(OS),Linux)
 	OPEN_COMMAND= xdg-open
@@ -28,17 +29,20 @@ endif
 all: rungame
 
 install: $(RESULT)
-	$(CC) $(CFLAGS) $^ $(CURSES) -o $(DIR)$(MAIN)
+	@$(CC) $(CFLAGS) $^ $(CURSES) -o $(DIR)$(MAIN)
+	@echo "Game Installed Successfully"
 
 uninstall: clean
-	rm -f $(DIR)$(MAIN)
+	@rm -f $(DIR)$(MAIN)
+	@echo "Game Is Unistalled Successfully"
 
 test: $(TEST_OBJECTS) 
 	$(CC) $(CFLAGS) $^ -o $(TEST_RESULT) $(CHECK_LIB)
 	./$(TEST_RESULT)
 
 $(RESULT): $(OBJECTS)
-	ar rc $(RESULT) $(OBJECTS)
+	@ar rc $(RESULT) $(OBJECTS)
+	@echo "Static Library Created"
 
 dvi:
 	$(OPEN_COMMAND) ../dvi/README.html
@@ -56,7 +60,7 @@ dist_unpack:
 
 
 .c.o:
-	$(CC) -c $(CFLAGS) $< -o $@
+	@$(CC) -c $(CFLAGS) $< -o $@
 
 gcov_report: $(TEST_SOURCES) 
 	$(CC) $(CFLAGS) --coverage $^ $(CHECK_LIB) -o $@
@@ -70,7 +74,7 @@ clang:
 	clang-format -style=Google -n $(MAIN_PROJECT)
 
 rungame: install
-	./$(DIR)$(MAIN)
+	@./$(DIR)$(MAIN)
 
 git:
 	git add .
@@ -78,11 +82,12 @@ git:
 	git push origin develop
 
 clean: clean_dist remove_save
-	rm -rf $(RESULT) $(OBJECTS) $(TEST_OBJECTS) $(TEST_RESULT) gcov_report* *.gc* report/ *.o $(DIR)$(MAIN)
+	@rm -rf $(RESULT) $(OBJECTS) $(TEST_OBJECTS) $(TEST_RESULT) gcov_report* *.gc* report/ *.o $(DIR)$(MAIN)
+	@echo "Everything is cleaned"
 
 clean_dist:
 	@cd ../ && rm -rf archive
 	@cd ../ && rm -rf archive.tar.gz
 
 remove_save:
-	rm -rf $(DIR)record.save
+	@rm -rf $(DIR)record.save
